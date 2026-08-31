@@ -166,12 +166,19 @@
 
     <!-- Action Bar & Filter -->
     <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div class="flex items-center space-x-3 w-full sm:w-auto">
-        <div class="relative flex-grow sm:w-64">
-          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
-          <input type="text" id="searchInput" oninput="renderTable()" placeholder="日付、備考、件数で検索..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+      <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+        <!-- 月選択フィルター -->
+        <div class="flex items-center space-x-1.5 bg-slate-100 p-1 rounded-lg border border-slate-200">
+          <i class="fa-solid fa-calendar text-emerald-700 ml-2"></i>
+          <select id="monthSelect" onchange="onMonthChange()" class="border-none text-sm font-bold text-slate-800 bg-transparent py-1 pr-3 focus:outline-none cursor-pointer">
+            <!-- JS dynamically populates months -->
+          </select>
         </div>
-        <select id="filterWorkDays" onchange="renderTable()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+        <div class="relative flex-grow sm:w-56">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+          <input type="text" id="searchInput" oninput="renderApp()" placeholder="日付、備考、件数で検索..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <select id="filterWorkDays" onchange="renderApp()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
           <option value="all">全日程表示</option>
           <option value="worked" selected>稼働日のみ</option>
           <option value="off">休日のみ</option>
@@ -640,10 +647,63 @@
     document.addEventListener('DOMContentLoaded', () => {
       checkAuth();
       loadData();
-      renderKPIs();
-      renderTimeSlotBreakdown();
-      renderTable();
+      populateMonthOptions();
+      renderApp();
     });
+
+    // Populate Month Selector dynamically based on records
+    function populateMonthOptions() {
+      const monthSelect = document.getElementById('monthSelect');
+      const currentSelected = monthSelect.value;
+      monthSelect.innerHTML = '';
+
+      const months = new Set();
+      recordsData.forEach(r => {
+        if (r.date && r.date.length >= 7) {
+          months.add(r.date.substring(0, 7));
+        }
+      });
+
+      const sortedMonths = Array.from(months).sort().reverse();
+      
+      const allOption = document.createElement('option');
+      allOption.value = 'all';
+      allOption.textContent = '全期間（通算）';
+      monthSelect.appendChild(allOption);
+
+      sortedMonths.forEach(m => {
+        const [yyyy, mm] = m.split('-');
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.textContent = `${yyyy}年${mm}月`;
+        monthSelect.appendChild(opt);
+      });
+
+      if (currentSelected && (currentSelected === 'all' || sortedMonths.includes(currentSelected))) {
+        monthSelect.value = currentSelected;
+      } else if (sortedMonths.length > 0) {
+        monthSelect.value = sortedMonths[0]; // Default to latest month
+      }
+    }
+
+    function getFilteredRecords() {
+      const selectedMonth = document.getElementById('monthSelect')?.value || 'all';
+      if (selectedMonth === 'all') {
+        return recordsData;
+      }
+      return recordsData.filter(r => r.date && r.date.startsWith(selectedMonth));
+    }
+
+    function onMonthChange() {
+      renderApp();
+    }
+
+    function renderApp() {
+      const filteredRecords = getFilteredRecords();
+      renderKPIs(filteredRecords);
+      renderTimeSlotBreakdown(filteredRecords);
+      renderTable(filteredRecords);
+    }
 
     // Load data from LocalStorage or Fallback to INITIAL_DATA
     function loadData() {
@@ -665,12 +725,12 @@
     }
 
     // Calculate Summary Stats
-    function renderKPIs() {
+    function renderKPIs(targetRecords = recordsData) {
       let workDays = 0;
       let totalOrders = 0;
       let totalKm = 0;
 
-      recordsData.forEach(r => {
+      targetRecords.forEach(r => {
         const orders = parseInt(r.totalOrders) || 0;
         const km = parseInt(r.totalKm) || 0;
         const isWorked = orders > 0 || km > 0 || r.startTime !== '';
@@ -692,7 +752,7 @@
     }
 
     // Time Slot Breakdown Card
-    function renderTimeSlotBreakdown() {
+    function renderTimeSlotBreakdown(targetRecords = recordsData) {
       const slots = [
         { key: 'b10', label: '10時便' },
         { key: 'b12', label: '12時便' },
@@ -708,7 +768,7 @@
         let countSum = 0;
         let distSum = 0;
 
-        recordsData.forEach(r => {
+        targetRecords.forEach(r => {
           if (r[slot.key]) {
             countSum += parseInt(r[slot.key].count) || 0;
             distSum += parseInt(r[slot.key].dist) || 0;
@@ -727,14 +787,14 @@
     }
 
     // Render Data Table
-    function renderTable() {
+    function renderTable(targetRecords = recordsData) {
       const search = document.getElementById('searchInput').value.toLowerCase().trim();
       const filterMode = document.getElementById('filterWorkDays').value;
 
       const tbody = document.getElementById('recordTableBody');
       tbody.innerHTML = '';
 
-      const filtered = recordsData.filter(r => {
+      const filtered = targetRecords.filter(r => {
         const orders = parseInt(r.totalOrders) || 0;
         const km = parseInt(r.totalKm) || 0;
         const isWorked = orders > 0 || km > 0 || r.startTime !== '';
@@ -942,9 +1002,8 @@
       }
 
       saveToStorage();
-      renderKPIs();
-      renderTimeSlotBreakdown();
-      renderTable();
+      populateMonthOptions();
+      renderApp();
       closeModal();
     }
 
@@ -959,9 +1018,8 @@
       if (confirm(`${target.date} の稼働記録を削除してもよろしいですか？`)) {
         recordsData = recordsData.filter(r => r.id !== id);
         saveToStorage();
-        renderKPIs();
-        renderTimeSlotBreakdown();
-        renderTable();
+        populateMonthOptions();
+        renderApp();
       }
     }
 
@@ -1013,9 +1071,8 @@
             if (confirm(`ファイルから ${imported.length} 件のデータをインポートしますか？現在のデータは上書きされます。`)) {
               recordsData = imported;
               saveToStorage();
-              renderKPIs();
-              renderTimeSlotBreakdown();
-              renderTable();
+              populateMonthOptions();
+              renderApp();
               alert('インポートが完了しました。');
             }
           } else {
@@ -1033,9 +1090,8 @@
       if (confirm('Excelから読み込んだ初期データにリセットしますか？手動で編集した変更内容は破棄されます。')) {
         recordsData = JSON.parse(JSON.stringify(INITIAL_DATA));
         saveToStorage();
-        renderKPIs();
-        renderTimeSlotBreakdown();
-        renderTable();
+        populateMonthOptions();
+        renderApp();
         alert('初期データに復元されました。');
       }
     }
