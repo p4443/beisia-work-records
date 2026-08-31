@@ -49,6 +49,28 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
+  <!-- PIN Lock Overlay -->
+  <div id="authOverlay" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-sm w-full text-center space-y-6">
+      <div class="bg-emerald-100 text-emerald-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto text-2xl shadow-inner">
+        <i class="fa-solid fa-lock"></i>
+      </div>
+      <div>
+        <h2 class="text-xl font-bold text-slate-800">ベイシア稼働記録</h2>
+        <p class="text-xs text-slate-500 mt-1">セキュリティのためパスワード（PIN）を入力してください</p>
+      </div>
+      <form onsubmit="verifyPIN(event)" class="space-y-4">
+        <div>
+          <input type="password" id="pinInput" placeholder="PINコードを入力 (初期: 1234)" pattern="[0-9]*" inputmode="numeric" required class="w-full text-center tracking-widest text-2xl font-bold py-3 px-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          <p id="pinError" class="text-xs text-red-500 mt-2 font-medium hidden">PINコードが正しくありません</p>
+        </div>
+        <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl transition shadow-lg">
+          ロック解除
+        </button>
+      </form>
+    </div>
+  </div>
+
   <!-- Header -->
   <header class="bg-emerald-800 text-white shadow-md sticky top-0 z-30">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -75,8 +97,14 @@
           <span class="hidden sm:inline">復元</span>
           <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="importJSON(event)">
         </label>
-        <button onclick="resetDataConfirmation()" class="bg-red-700 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition title='初期データにリセット'">
+        <button onclick="resetDataConfirmation()" class="bg-red-700 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition" title="初期データにリセット">
           <i class="fa-solid fa-rotate-left"></i>
+        </button>
+        <button onclick="changePIN()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition" title="PINコード変更">
+          <i class="fa-solid fa-key"></i>
+        </button>
+        <button onclick="logout()" class="bg-slate-700 hover:bg-slate-600 text-white px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition" title="ロック・ログアウト">
+          <i class="fa-solid fa-lock"></i>
         </button>
       </div>
     </div>
@@ -550,10 +578,67 @@
     ];
 
     const STORAGE_KEY = 'beisia_work_records_v1';
+    const PIN_KEY = 'beisia_pin_code_v1';
     let recordsData = [];
+
+    // PIN Authentication Logic
+    function getStoredPIN() {
+      return localStorage.getItem(PIN_KEY) || '1234';
+    }
+
+    function checkAuth() {
+      const isAuthed = sessionStorage.getItem('beisia_authed') === 'true';
+      const authOverlay = document.getElementById('authOverlay');
+      if (isAuthed) {
+        authOverlay.classList.add('hidden');
+      } else {
+        authOverlay.classList.remove('hidden');
+        document.getElementById('pinInput').value = '';
+        document.getElementById('pinError').classList.add('hidden');
+      }
+    }
+
+    function verifyPIN(event) {
+      event.preventDefault();
+      const input = document.getElementById('pinInput').value;
+      const correctPin = getStoredPIN();
+      if (input === correctPin) {
+        sessionStorage.setItem('beisia_authed', 'true');
+        document.getElementById('authOverlay').classList.add('hidden');
+        document.getElementById('pinError').classList.add('hidden');
+      } else {
+        document.getElementById('pinError').classList.remove('hidden');
+        document.getElementById('pinInput').value = '';
+        document.getElementById('pinInput').focus();
+      }
+    }
+
+    function logout() {
+      if (confirm('画面をロックしてログアウトしますか？')) {
+        sessionStorage.removeItem('beisia_authed');
+        checkAuth();
+      }
+    }
+
+    function changePIN() {
+      const currentPin = getStoredPIN();
+      const inputCurrent = prompt('現在のPINコードを入力してください:');
+      if (inputCurrent !== currentPin) {
+        if (inputCurrent !== null) alert('現在のPINコードが正しくありません。');
+        return;
+      }
+      const newPin = prompt('新しい4桁以上のPINコード（半角数字）を入力してください:');
+      if (!newPin || !/^\d{4,}$/.test(newPin)) {
+        if (newPin !== null) alert('4桁以上の数字を入力してください。');
+        return;
+      }
+      localStorage.setItem(PIN_KEY, newPin);
+      alert(`PINコードを変更しました。（新しいPIN: ${newPin}）`);
+    }
 
     // Initialize application
     document.addEventListener('DOMContentLoaded', () => {
+      checkAuth();
       loadData();
       renderKPIs();
       renderTimeSlotBreakdown();
