@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ベイシア・ネットスーパー 稼働記録管理システム</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              100: '#dcfce7',
+              500: '#16a34a',
+              600: '#15803d',
+              700: '#166534',
+              800: '#14532d',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 8px;
+      width: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-emerald-800 text-white shadow-md sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="bg-white text-emerald-800 p-2 rounded-lg font-bold text-xl flex items-center justify-center w-10 h-10 shadow">
+          <i class="fa-solid font-bold fa-truck-fast"></i>
+        </div>
+        <div>
+          <h1 class="font-bold text-lg leading-tight">ベイシア・ネットスーパー</h1>
+          <p class="text-xs text-emerald-200">稼働記録 & 配送メーター管理システム</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2 sm:space-x-3">
+        <button onclick="exportCSV()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center space-x-1 shadow-sm">
+          <i class="fa-solid fa-file-csv"></i>
+          <span class="hidden sm:inline">CSV出力</span>
+        </button>
+        <button onclick="exportJSON()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center space-x-1 shadow-sm">
+          <i class="fa-solid fa-download"></i>
+          <span class="hidden sm:inline">バックアップ</span>
+        </button>
+        <label class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center space-x-1 cursor-pointer shadow-sm">
+          <i class="fa-solid fa-upload"></i>
+          <span class="hidden sm:inline">復元</span>
+          <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="importJSON(event)">
+        </label>
+        <button onclick="resetDataConfirmation()" class="bg-red-700 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition title='初期データにリセット'">
+          <i class="fa-solid fa-rotate-left"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+    <!-- KPI Summary Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 flex items-center space-x-4">
+        <div class="bg-emerald-100 text-emerald-700 p-3 rounded-xl">
+          <i class="fa-solid fa-calendar-check text-2xl"></i>
+        </div>
+        <div>
+          <p class="text-xs text-slate-500 font-medium">稼働日数</p>
+          <p class="text-2xl font-bold text-slate-800" id="kpiWorkDays">0<span class="text-xs font-normal ml-1">日</span></p>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 flex items-center space-x-4">
+        <div class="bg-blue-100 text-blue-700 p-3 rounded-xl">
+          <i class="fa-solid fa-box text-2xl"></i>
+        </div>
+        <div>
+          <p class="text-xs text-slate-500 font-medium">総配送件数</p>
+          <p class="text-2xl font-bold text-slate-800" id="kpiTotalOrders">0<span class="text-xs font-normal ml-1">件</span></p>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 flex items-center space-x-4">
+        <div class="bg-amber-100 text-amber-700 p-3 rounded-xl">
+          <i class="fa-solid fa-route text-2xl"></i>
+        </div>
+        <div>
+          <p class="text-xs text-slate-500 font-medium">総走行距離</p>
+          <p class="text-2xl font-bold text-slate-800" id="kpiTotalKm">0<span class="text-xs font-normal ml-1">km</span></p>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 flex items-center space-x-4">
+        <div class="bg-indigo-100 text-indigo-700 p-3 rounded-xl">
+          <i class="fa-solid fa-chart-line text-2xl"></i>
+        </div>
+        <div>
+          <p class="text-xs text-slate-500 font-medium">1日平均 (件/距離)</p>
+          <p class="text-lg font-bold text-slate-800" id="kpiAvgDaily">0<span class="text-xs font-normal">件</span> / 0<span class="text-xs font-normal">km</span></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Time Slot Breakdown -->
+    <div class="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
+      <h2 class="text-sm font-bold text-slate-700 mb-3 flex items-center space-x-2">
+        <i class="fa-solid fa-clock text-emerald-600"></i>
+        <span>便別 配送件数・走行距離内訳</span>
+      </h2>
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3" id="timeSlotBreakdown">
+        <!-- JS dynamically renders 10時, 12時, 14時, 16時, 18時 -->
+      </div>
+    </div>
+
+    <!-- Action Bar & Filter -->
+    <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center space-x-3 w-full sm:w-auto">
+        <div class="relative flex-grow sm:w-64">
+          <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+          <input type="text" id="searchInput" oninput="renderTable()" placeholder="日付、備考、件数で検索..." class="w-full pl-9 pr-4 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+        </div>
+        <select id="filterWorkDays" onchange="renderTable()" class="border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white">
+          <option value="all">全日程表示</option>
+          <option value="worked" selected>稼働日のみ</option>
+          <option value="off">休日のみ</option>
+        </select>
+      </div>
+      <button onclick="openModal()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-4 py-2 rounded-lg text-sm transition flex items-center justify-center space-x-2 shadow">
+        <i class="fa-solid fa-plus"></i>
+        <span>新規記録の追加</span>
+      </button>
+    </div>
+
+    <!-- Data Table Container -->
+    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <div class="overflow-x-auto custom-scrollbar">
+        <table class="w-full text-xs sm:text-sm text-left border-collapse">
+          <thead>
+            <tr class="bg-slate-800 text-slate-200 border-b border-slate-700">
+              <th class="py-3 px-3 font-semibold text-center w-24">日付</th>
+              <th class="py-3 px-2 font-semibold text-center w-16">出勤</th>
+              <th class="py-3 px-2 font-semibold text-center w-16">10時発</th>
+              <th class="py-3 px-2 font-semibold text-center border-l border-slate-700">10時便</th>
+              <th class="py-3 px-2 font-semibold text-center">12時便</th>
+              <th class="py-3 px-2 font-semibold text-center">14時便</th>
+              <th class="py-3 px-2 font-semibold text-center">16時便</th>
+              <th class="py-3 px-2 font-semibold text-center">18時便</th>
+              <th class="py-3 px-2 font-semibold text-center bg-emerald-900 text-emerald-100">合計件数</th>
+              <th class="py-3 px-2 font-semibold text-center bg-emerald-900 text-emerald-100">総走行距離</th>
+              <th class="py-3 px-3 font-semibold text-left">特記事項・備考</th>
+              <th class="py-3 px-3 font-semibold text-center w-20">操作</th>
+            </tr>
+          </thead>
+          <tbody id="recordTableBody" class="divide-y divide-slate-200">
+            <!-- JS dynamically populates table rows -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
+      &copy; 2026 ベイシア・ネットスーパー 稼働記録管理システム. All rights reserved.
+    </div>
+  </footer>
+
+  <!-- Modal for Add / Edit Record -->
+  <div id="recordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <div class="px-6 py-4 bg-emerald-800 text-white rounded-t-2xl flex items-center justify-between sticky top-0 z-10">
+        <h3 class="font-bold text-lg flex items-center space-x-2" id="modalTitle">
+          <i class="fa-solid fa-pen-to-square"></i>
+          <span>稼働記録の入力</span>
+        </h3>
+        <button onclick="closeModal()" class="text-white/80 hover:text-white p-1">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+
+      <form id="recordForm" onsubmit="saveRecord(event)" class="p-6 space-y-6">
+        <input type="hidden" id="editId">
+
+        <!-- Basic Info -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">日付 <span class="text-red-500">*</span></label>
+            <input type="date" id="formDate" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">出勤時間</label>
+            <input type="time" id="formStartTime" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">10時便出発時間</label>
+            <input type="time" id="formDep10Time" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">区分・特記事項</label>
+          <input type="text" id="formNote" placeholder="例: 18件数, 公休, 有休など" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+        </div>
+
+        <!-- Time Slots Grid -->
+        <div class="border-t border-slate-200 pt-4 space-y-4">
+          <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">各便の配送・メーターデータ</h4>
+          
+          <div class="grid grid-cols-1 gap-3">
+            <!-- 10時便 -->
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 grid grid-cols-4 gap-2 items-center">
+              <span class="text-xs font-bold text-slate-700">10時便</span>
+              <input type="number" id="formCount10" placeholder="件数" min="0" oninput="calcDist('10')" class="px-2 py-1.5 border rounded text-sm text-center">
+              <input type="number" id="formStartKm10" placeholder="発km" min="0" oninput="calcDist('10')" class="px-2 py-1.5 border rounded text-sm text-center">
+              <input type="number" id="formEndKm10" placeholder="着km" min="0" oninput="calcDist('10')" class="px-2 py-1.5 border rounded text-sm text-center">
+            </div>
+
+            <!-- 12時便 -->
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 grid grid-cols-4 gap-2 items-center">
+              <span class="text-xs font-bold text-slate-700">12時便</span>
+              <input type="number" id="formCount12" placeholder="件数" min="0" oninput="calcDist('12')" class="px-2 py-1.5 border rounded text-sm text-center">
+              <input type="number" id="formStartKm12" placeholder="発km" min="0" oninput="calcDist('12')" class="px-2 py-1.5 border rounded text-sm text-center">
+              <input type="number" id="formEndKm12" placeholder="着km" min="0" oninput="calcDist('12')" class="px-2 py-1.5 border rounded text-sm text-center">
+            </div>
+
+            <!-- 14時便 -->
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 grid grid-cols-4 gap-2 items-center">
+              <span class="text-xs font-bold text-slate-700">14時便</span>
+              <input type="number" id="formCount14" placeholder="件数" min="0" oninput="calcDist('14')" class="px-2 py-1.5 border rounded text-sm text-center">
+              <input type="number" id="formStartKm14" placeholder="発km" min="0" oninput="calcDist('14')" class="px-2 py-1.5 border rounded text-sm text-center">
+              <input type="number" id="formEndKm14" placeholder="着km" min="0" oninput="calcDist('14')" class="px-2 py-1.5 border rounded text-sm text-center">
+            </div>
+
+            <!-- 16時便 -->
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 grid grid-cols-4 gap-2 items-center">
+              <span class="text-xs font-bold text-slate-700">16時便</span>
+              <input type="number" id="formCount16" placeholder="件数" min="0" oninput="calcDist('16')" class="px-2 py-1.5 border rounded text-sm text-center">
+              <input type="number" id="formStartKm16" placeholder="発km" min="0" oninput="calcDist('16')" class="px-2 py-1.5 border rounded text-sm text-center">
+              <input type="number" id="formEndKm16" placeholder="着km" min="0" oninput="calcDist('16')" class="px-2 py-1.5 border rounded text-sm text-center">
+            </div>
+
+            <!-- 18時便 -->
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 grid grid-cols-4 gap-2 items-center">
+              <span class="text-xs font-bold text-slate-700">18時便</span>
+              <input type="number" id="formCount18" placeholder="件数" min="0" oninput="calcDist('18')" class="px-2 py-1.5 border rounded text-sm text-center">
+              <input type="number" id="formStartKm18" placeholder="発km" min="0" oninput="calcDist('18')" class="px-2 py-1.5 border rounded text-sm text-center">
+              <input type="number" id="formEndKm18" placeholder="着km" min="0" oninput="calcDist('18')" class="px-2 py-1.5 border rounded text-sm text-center">
+            </div>
+          </div>
+        </div>
+
+        <!-- Dynamic Summary -->
+        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center justify-around">
+          <div class="text-center">
+            <span class="text-xs text-slate-500 font-medium">1日合計件数</span>
+            <p class="text-xl font-bold text-emerald-800" id="calcTotalOrders">0 件</p>
+          </div>
+          <div class="w-px h-8 bg-emerald-200"></div>
+          <div class="text-center">
+            <span class="text-xs text-slate-500 font-medium">1日合計走行距離</span>
+            <p class="text-xl font-bold text-emerald-800" id="calcTotalKm">0 km</p>
+          </div>
+        </div>
+
+        <div class="flex justify-end space-x-3 pt-2">
+          <button type="button" onclick="closeModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 hover:bg-slate-100 transition">キャンセル</button>
+          <button type="submit" class="px-6 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-medium rounded-lg text-sm transition shadow">保存する</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Application Logic -->
+  <script>
+    // Initial Dataset extracted from Excel
+    const INITIAL_DATA = [
+      {
+        "id": 1, "date": "2026-01-01", "dow": "木", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
+        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
+      },
+      {
+        "id": 2, "date": "2026-01-02", "dow": "金", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
+        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
+      },
+      {
+        "id": 3, "date": "2026-01-03", "dow": "土", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
+        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
+      },
+      {
+        "id": 4, "date": "2026-01-04", "dow": "日", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
+        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
+      },
+      {
+        "id": 5, "date": "2026-01-05", "dow": "月", "note": "18件数", "startTime": "9:20", "dep10Time": "9:50", "totalOrders": "21", "totalKm": "79",
+        "b10": { "count": "4", "startKm": "871", "endKm": "882", "dist": "11" },
+        "b12": { "count": "4", "startKm": "899", "endKm": "912", "dist": "13" },
+        "b14": { "count": "4", "startKm": "914", "endKm": "935", "dist": "21" },
+        "b16": { "count": "4", "startKm": "937", "endKm": "959", "dist": "22" },
+        "b18": { "count": "5", "startKm": "959", "endKm": "971", "dist": "12" }
+      },
+      {
+        "id": 6, "date": "2026-01-06", "dow": "火", "note": "18:55", "startTime": "9:05", "dep10Time": "9:48", "totalOrders": "28", "totalKm": "104",
+        "b10": { "count": "4", "startKm": "982", "endKm": "999", "dist": "17" },
+        "b12": { "count": "6", "startKm": "8", "endKm": "30", "dist": "22" },
+        "b14": { "count": "6", "startKm": "30", "endKm": "52", "dist": "22" },
+        "b16": { "count": "6", "startKm": "59", "endKm": "82", "dist": "23" },
+        "b18": { "count": "6", "startKm": "82", "endKm": "102", "dist": "20" }
+      },
+      {
+        "id": 7, "date": "2026-01-07", "dow": "水", "note": "18件数", "startTime": "9:20", "dep10Time": "19:05", "totalOrders": "19", "totalKm": "102",
+        "b10": { "count": "2", "startKm": "130", "endKm": "145", "dist": "15" },
+        "b12": { "count": "4", "startKm": "155", "endKm": "174", "dist": "19" },
+        "b14": { "count": "4", "startKm": "180", "endKm": "201", "dist": "21" },
+        "b16": { "count": "5", "startKm": "201", "endKm": "221", "dist": "20" },
+        "b18": { "count": "4", "startKm": "231", "endKm": "258", "dist": "27" }
+      },
+      {
+        "id": 8, "date": "2026-01-08", "dow": "木", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
+        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
+      },
+      {
+        "id": 9, "date": "2026-01-09", "dow": "金", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
+        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
+      },
+      {
+        "id": 10, "date": "2026-01-10", "dow": "土", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
+        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
+      },
+      {
+        "id": 11, "date": "2026-01-11", "dow": "日", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
+        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
+      },
+      {
+        "id": 12, "date": "2026-01-12", "dow": "月", "note": "18件数", "startTime": "19:00", "dep10Time": "9:46", "totalOrders": "30", "totalKm": "117",
+        "b10": { "count": "6", "startKm": "632", "endKm": "657", "dist": "25" },
+        "b12": { "count": "6", "startKm": "657", "endKm": "683", "dist": "26" },
+        "b14": { "count": "6", "startKm": "683", "endKm": "698", "dist": "15" },
+        "b16": { "count": "6", "startKm": "698", "endKm": "723", "dist": "25" },
+        "b18": { "count": "6", "startKm": "723", "endKm": "749", "dist": "26" }
+      },
+      {
+        "id": 13, "date": "2026-01-13", "dow": "火", "note": "18件数", "startTime": "18:50", "dep10Time": "9:45", "totalOrders": "28", "totalKm": "124",
+        "b10": { "count": "4", "startKm": "778", "endKm": "800", "dist": "22" },
+        "b12": { "count": "6", "startKm": "804", "endKm": "833", "dist": "29" },
+        "b14": { "count": "6", "startKm": "833", "endKm": "853", "dist": "20" },
+        "b16": { "count": "6", "startKm": "853", "endKm": "876", "dist": "23" },
+        "b18": { "count": "6", "startKm": "878", "endKm": "908", "dist": "30" }
+      },
+      {
+        "id": 14, "date": "2026-01-14", "dow": "水", "note": "19:25", "startTime": "9:05", "dep10Time": "9:48", "totalOrders": "19", "totalKm": "104",
+        "b10": { "count": "1", "startKm": "931", "endKm": "948", "dist": "17" },
+        "b12": { "count": "6", "startKm": "963", "endKm": "989", "dist": "26" },
+        "b14": { "count": "3", "startKm": "96", "endKm": "115", "dist": "19" },
+        "b16": { "count": "3", "startKm": "18", "endKm": "32", "dist": "14" },
+        "b18": { "count": "6", "startKm": "42", "endKm": "70", "dist": "28" }
+      },
+      {
+        "id": 15, "date": "2026-01-15", "dow": "木", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
+        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
+      },
+      {
+        "id": 16, "date": "2026-01-16", "dow": "金", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
+        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
+      },
+      {
+        "id": 17, "date": "2026-01-17", "dow": "土", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
+        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
+      },
+      {
+        "id": 18, "date": "2026-01-18", "dow": "日", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
+        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
+      },
+      {
+        "id": 19, "date": "2026-01-19", "dow": "月", "note": "19:25", "startTime": "18:50", "dep10Time": "9:48", "totalOrders": "26", "totalKm": "109",
+        "b10": { "count": "5", "startKm": "713", "endKm": "745", "dist": "32" },
+        "b12": { "count": "3", "startKm": "749", "endKm": "766", "dist": "17" },
+        "b14": { "count": "6", "startKm": "769", "endKm": "786", "dist": "17" },
+        "b16": { "count": "6", "startKm": "786", "endKm": "807", "dist": "21" },
+        "b18": { "count": "6", "startKm": "812", "endKm": "834", "dist": "22" }
+      },
+      {
+        "id": 20, "date": "2026-01-20", "dow": "火", "note": "9:15", "startTime": "19:00", "dep10Time": "19:05", "totalOrders": "26", "totalKm": "92",
+        "b10": { "count": "2", "startKm": "844", "endKm": "856", "dist": "12" },
+        "b12": { "count": "6", "startKm": "862", "endKm": "882", "dist": "20" },
+        "b14": { "count": "6", "startKm": "882", "endKm": "902", "dist": "20" },
+        "b16": { "count": "6", "startKm": "902", "endKm": "924", "dist": "22" },
+        "b18": { "count": "6", "startKm": "930", "endKm": "948", "dist": "18" }
+      },
+      {
+        "id": 21, "date": "2026-01-21", "dow": "水", "note": "19:25", "startTime": "9:25", "dep10Time": "9:48", "totalOrders": "19", "totalKm": "86",
+        "b10": { "count": "4", "startKm": "983", "endKm": "1005", "dist": "22" },
+        "b12": { "count": "3", "startKm": "18", "endKm": "35", "dist": "17" },
+        "b14": { "count": "3", "startKm": "37", "endKm": "54", "dist": "17" },
+        "b16": { "count": "2", "startKm": "54", "endKm": "67", "dist": "13" },
+        "b18": { "count": "7", "startKm": "80", "endKm": "97", "dist": "17" }
+      },
+      {
+        "id": 22, "date": "2026-01-22", "dow": "木", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
+        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
+      },
+      {
+        "id": 23, "date": "2026-01-23", "dow": "金", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
+        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
+      },
+      {
+        "id": 24, "date": "2026-01-24", "dow": "土", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
+        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
+      },
+      {
+        "id": 25, "date": "2026-01-25", "dow": "日", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
+        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
+      },
+      {
+        "id": 26, "date": "2026-01-26", "dow": "月", "note": "9:15", "startTime": "19:00", "dep10Time": "9:49", "totalOrders": "19", "totalKm": "77",
+        "b10": { "count": "3", "startKm": "438", "endKm": "455", "dist": "17" },
+        "b12": { "count": "6", "startKm": "459", "endKm": "481", "dist": "22" },
+        "b14": { "count": "5", "startKm": "481", "endKm": "493", "dist": "12" },
+        "b16": { "count": "1", "startKm": "493", "endKm": "502", "dist": "9" },
+        "b18": { "count": "4", "startKm": "514", "endKm": "531", "dist": "17" }
+      },
+      {
+        "id": 27, "date": "2026-01-27", "dow": "火", "note": "19:25", "startTime": "9:05", "dep10Time": "9:50", "totalOrders": "9", "totalKm": "45",
+        "b10": { "count": "1", "startKm": "555", "endKm": "560", "dist": "5" },
+        "b12": { "count": "1", "startKm": "555", "endKm": "559", "dist": "4" },
+        "b14": { "count": "2", "startKm": "559", "endKm": "571", "dist": "12" },
+        "b16": { "count": "1", "startKm": "668", "endKm": "677", "dist": "9" },
+        "b18": { "count": "4", "startKm": "691", "endKm": "706", "dist": "15" }
+      },
+      {
+        "id": 28, "date": "2026-01-28", "dow": "水", "note": "18件数", "startTime": "19:10", "dep10Time": "18:35", "totalOrders": "8", "totalKm": "47",
+        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b14": { "count": "2", "startKm": "783", "endKm": "796", "dist": "13" },
+        "b16": { "count": "1", "startKm": "808", "endKm": "819", "dist": "11" },
+        "b18": { "count": "5", "startKm": "822", "endKm": "845", "dist": "23" }
+      },
+      {
+        "id": 29, "date": "2026-01-29", "dow": "木", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
+        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
+      },
+      {
+        "id": 30, "date": "2026-01-30", "dow": "金", "note": "10:00", "startTime": "9:20", "dep10Time": "9:00", "totalOrders": "4", "totalKm": "27",
+        "b10": { "count": "3", "startKm": "15", "endKm": "33", "dist": "18" },
+        "b12": { "count": "1", "startKm": "43", "endKm": "52", "dist": "9" },
+        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
+      },
+      {
+        "id": 31, "date": "2026-01-31", "dow": "土", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
+        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
+        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
+      }
+    ];
+
+    const STORAGE_KEY = 'beisia_work_records_v1';
+    let recordsData = [];
+
+    // Initialize application
+    document.addEventListener('DOMContentLoaded', () => {
+      loadData();
+      renderKPIs();
+      renderTimeSlotBreakdown();
+      renderTable();
+    });
+
+    // Load data from LocalStorage or Fallback to INITIAL_DATA
+    function loadData() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          recordsData = JSON.parse(saved);
+        } catch (e) {
+          recordsData = JSON.parse(JSON.stringify(INITIAL_DATA));
+        }
+      } else {
+        recordsData = JSON.parse(JSON.stringify(INITIAL_DATA));
+        saveToStorage();
+      }
+    }
+
+    function saveToStorage() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(recordsData));
+    }
+
+    // Calculate Summary Stats
+    function renderKPIs() {
+      let workDays = 0;
+      let totalOrders = 0;
+      let totalKm = 0;
+
+      recordsData.forEach(r => {
+        const orders = parseInt(r.totalOrders) || 0;
+        const km = parseInt(r.totalKm) || 0;
+        const isWorked = orders > 0 || km > 0 || r.startTime !== '';
+
+        if (isWorked) {
+          workDays++;
+          totalOrders += orders;
+          totalKm += km;
+        }
+      });
+
+      document.getElementById('kpiWorkDays').innerText = workDays;
+      document.getElementById('kpiTotalOrders').innerText = totalOrders.toLocaleString();
+      document.getElementById('kpiTotalKm').innerText = totalKm.toLocaleString();
+
+      const avgOrders = workDays > 0 ? (totalOrders / workDays).toFixed(1) : 0;
+      const avgKm = workDays > 0 ? (totalKm / workDays).toFixed(1) : 0;
+      document.getElementById('kpiAvgDaily').innerHTML = `${avgOrders}<span class="text-xs font-normal ml-0.5">件</span> / ${avgKm}<span class="text-xs font-normal ml-0.5">km</span>`;
+    }
+
+    // Time Slot Breakdown Card
+    function renderTimeSlotBreakdown() {
+      const slots = [
+        { key: 'b10', label: '10時便' },
+        { key: 'b12', label: '12時便' },
+        { key: 'b14', label: '14時便' },
+        { key: 'b16', label: '16時便' },
+        { key: 'b18', label: '18時便' }
+      ];
+
+      const container = document.getElementById('timeSlotBreakdown');
+      container.innerHTML = '';
+
+      slots.forEach(slot => {
+        let countSum = 0;
+        let distSum = 0;
+
+        recordsData.forEach(r => {
+          if (r[slot.key]) {
+            countSum += parseInt(r[slot.key].count) || 0;
+            distSum += parseInt(r[slot.key].dist) || 0;
+          }
+        });
+
+        const card = document.createElement('div');
+        card.className = 'bg-slate-50 border border-slate-200 rounded-lg p-3 text-center';
+        card.innerHTML = `
+          <div class="text-xs font-bold text-slate-600 mb-1">${slot.label}</div>
+          <div class="text-lg font-bold text-emerald-700">${countSum} <span class="text-xs font-normal text-slate-500">件</span></div>
+          <div class="text-xs text-slate-500 font-medium mt-0.5">${distSum} <span class="font-normal">km</span></div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // Render Data Table
+    function renderTable() {
+      const search = document.getElementById('searchInput').value.toLowerCase().trim();
+      const filterMode = document.getElementById('filterWorkDays').value;
+
+      const tbody = document.getElementById('recordTableBody');
+      tbody.innerHTML = '';
+
+      const filtered = recordsData.filter(r => {
+        const orders = parseInt(r.totalOrders) || 0;
+        const km = parseInt(r.totalKm) || 0;
+        const isWorked = orders > 0 || km > 0 || r.startTime !== '';
+
+        if (filterMode === 'worked' && !isWorked) return false;
+        if (filterMode === 'off' && isWorked) return false;
+
+        if (search) {
+          const text = `${r.date} ${r.dow} ${r.note} ${r.startTime} ${r.totalOrders}件 ${r.totalKm}km`.toLowerCase();
+          if (!text.includes(search)) return false;
+        }
+
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="12" class="py-8 text-center text-slate-400">
+              <i class="fa-solid fa-folder-open text-3xl mb-2"></i>
+              <p class="text-sm">該当する記録が見つかりません</p>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      filtered.forEach(r => {
+        const tr = document.createElement('tr');
+        const orders = parseInt(r.totalOrders) || 0;
+        const isWorked = orders > 0 || r.totalKm > 0 || r.startTime !== '';
+        
+        tr.className = isWorked ? 'hover:bg-slate-50 transition' : 'bg-slate-50/50 hover:bg-slate-100/50 text-slate-400 transition';
+
+        const formatSlot = (slot) => {
+          if (!slot || (!slot.count && !slot.dist && slot.dist === '0')) return '-';
+          const cnt = slot.count ? `${slot.count}件` : '';
+          const dst = slot.dist && slot.dist !== '0' ? ` (${slot.dist}km)` : '';
+          return cnt || dst ? `${cnt}${dst}` : '-';
+        };
+
+        const dowBadgeClass = r.dow === '土' ? 'text-blue-600 bg-blue-50 font-bold px-1.5 py-0.5 rounded'
+                             : r.dow === '日' ? 'text-red-600 bg-red-50 font-bold px-1.5 py-0.5 rounded'
+                             : 'text-slate-600';
+
+        tr.innerHTML = `
+          <td class="py-3 px-3 text-center whitespace-nowrap">
+            <span class="font-bold text-slate-800">${r.date}</span>
+            <span class="text-xs ml-1 ${dowBadgeClass}">(${r.dow || '-'})</span>
+          </td>
+          <td class="py-3 px-2 text-center text-slate-700 font-medium">${r.startTime || '-'}</td>
+          <td class="py-3 px-2 text-center text-slate-700 font-medium">${r.dep10Time || '-'}</td>
+          <td class="py-3 px-2 text-center text-xs border-l border-slate-200">${formatSlot(r.b10)}</td>
+          <td class="py-3 px-2 text-center text-xs">${formatSlot(r.b12)}</td>
+          <td class="py-3 px-2 text-center text-xs">${formatSlot(r.b14)}</td>
+          <td class="py-3 px-2 text-center text-xs">${formatSlot(r.b16)}</td>
+          <td class="py-3 px-2 text-center text-xs">${formatSlot(r.b18)}</td>
+          <td class="py-3 px-2 text-center font-bold text-emerald-700 bg-emerald-50/60">${r.totalOrders > 0 ? r.totalOrders + ' 件' : '-'}</td>
+          <td class="py-3 px-2 text-center font-bold text-emerald-800 bg-emerald-50/60">${r.totalKm > 0 ? r.totalKm + ' km' : '-'}</td>
+          <td class="py-3 px-3 text-left text-xs text-slate-600 max-w-xs truncate" title="${r.note}">${r.note || '-'}</td>
+          <td class="py-3 px-3 text-center whitespace-nowrap">
+            <button onclick="editRecord(${r.id})" class="text-emerald-700 hover:text-emerald-900 p-1.5 hover:bg-emerald-50 rounded transition" title="編集">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button onclick="deleteRecord(${r.id})" class="text-slate-400 hover:text-red-600 p-1.5 hover:bg-red-50 rounded transition ml-1" title="削除">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Modal Control & Calculation
+    function openModal(editId = null) {
+      const modal = document.getElementById('recordModal');
+      const title = document.getElementById('modalTitle');
+      const form = document.getElementById('recordForm');
+
+      form.reset();
+      document.getElementById('editId').value = '';
+
+      if (editId) {
+        const record = recordsData.find(r => r.id === editId);
+        if (record) {
+          title.querySelector('span').innerText = `稼働記録の編集 (${record.date})`;
+          document.getElementById('editId').value = record.id;
+          document.getElementById('formDate').value = record.date;
+          document.getElementById('formStartTime').value = record.startTime || '';
+          document.getElementById('formDep10Time').value = record.dep10Time || '';
+          document.getElementById('formNote').value = record.note || '';
+
+          ['10', '12', '14', '16', '18'].forEach(slot => {
+            const b = record[`b${slot}`] || {};
+            document.getElementById(`formCount${slot}`).value = b.count || '';
+            document.getElementById(`formStartKm${slot}`).value = b.startKm || '';
+            document.getElementById(`formEndKm${slot}`).value = b.endKm || '';
+          });
+        }
+      } else {
+        title.querySelector('span').innerText = '新規稼働記録の追加';
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('formDate').value = today;
+      }
+
+      ['10', '12', '14', '16', '18'].forEach(slot => calcDist(slot));
+      modal.classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('recordModal').classList.add('hidden');
+    }
+
+    function calcDist(slot) {
+      const startKm = parseInt(document.getElementById(`formStartKm${slot}`).value);
+      const endKm = parseInt(document.getElementById(`formEndKm${slot}`).value);
+      updateSummaryTotals();
+    }
+
+    function updateSummaryTotals() {
+      let totalOrders = 0;
+      let totalKm = 0;
+
+      ['10', '12', '14', '16', '18'].forEach(slot => {
+        const cnt = parseInt(document.getElementById(`formCount${slot}`).value) || 0;
+        const sKm = parseInt(document.getElementById(`formStartKm${slot}`).value);
+        const eKm = parseInt(document.getElementById(`formEndKm${slot}`).value);
+
+        totalOrders += cnt;
+        if (!isNaN(sKm) && !isNaN(eKm) && eKm >= sKm) {
+          totalKm += (eKm - sKm);
+        } else if (!isNaN(sKm) && !isNaN(eKm) && eKm < sKm) {
+          // メーター一周（例: 982km -> 30km）の場合
+          totalKm += (1000 - sKm + eKm);
+        }
+      });
+
+      document.getElementById('calcTotalOrders').innerText = `${totalOrders} 件`;
+      document.getElementById('calcTotalKm').innerText = `${totalKm} km`;
+    }
+
+    function saveRecord(event) {
+      event.preventDefault();
+
+      const editId = document.getElementById('editId').value;
+      const dateVal = document.getElementById('formDate').value;
+      
+      const dateObj = new Date(dateVal);
+      const dows = ['日', '月', '火', '水', '木', '金', '土'];
+      const dow = dows[dateObj.getDay()];
+
+      let totalOrders = 0;
+      let totalKm = 0;
+
+      const slotsData = {};
+
+      ['10', '12', '14', '16', '18'].forEach(slot => {
+        const cnt = document.getElementById(`formCount${slot}`).value.trim();
+        const sKm = document.getElementById(`formStartKm${slot}`).value.trim();
+        const eKm = document.getElementById(`formEndKm${slot}`).value.trim();
+
+        let dist = 0;
+        const startNum = parseInt(sKm);
+        const endNum = parseInt(eKm);
+
+        if (!isNaN(startNum) && !isNaN(endNum)) {
+          if (endNum >= startNum) {
+            dist = endNum - startNum;
+          } else {
+            dist = (1000 - startNum) + endNum; // Meter overflow
+          }
+        }
+
+        totalOrders += (parseInt(cnt) || 0);
+        totalKm += dist;
+
+        slotsData[`b${slot}`] = {
+          count: cnt,
+          startKm: sKm,
+          endKm: eKm,
+          dist: dist.toString()
+        };
+      });
+
+      const newRecord = {
+        id: editId ? parseInt(editId) : (recordsData.length > 0 ? Math.max(...recordsData.map(r => r.id)) + 1 : 1),
+        date: dateVal,
+        dow: dow,
+        note: document.getElementById('formNote').value.trim(),
+        startTime: document.getElementById('formStartTime').value,
+        dep10Time: document.getElementById('formDep10Time').value,
+        totalOrders: totalOrders.toString(),
+        totalKm: totalKm.toString(),
+        ...slotsData
+      };
+
+      if (editId) {
+        const idx = recordsData.findIndex(r => r.id === parseInt(editId));
+        if (idx !== -1) {
+          recordsData[idx] = newRecord;
+        }
+      } else {
+        recordsData.push(newRecord);
+        recordsData.sort((a, b) => a.date.localeCompare(b.date));
+      }
+
+      saveToStorage();
+      renderKPIs();
+      renderTimeSlotBreakdown();
+      renderTable();
+      closeModal();
+    }
+
+    function editRecord(id) {
+      openModal(id);
+    }
+
+    function deleteRecord(id) {
+      const target = recordsData.find(r => r.id === id);
+      if (!target) return;
+
+      if (confirm(`${target.date} の稼働記録を削除してもよろしいですか？`)) {
+        recordsData = recordsData.filter(r => r.id !== id);
+        saveToStorage();
+        renderKPIs();
+        renderTimeSlotBreakdown();
+        renderTable();
+      }
+    }
+
+    // CSV & JSON Export / Import / Reset
+    function exportCSV() {
+      let csvContent = "\uFEFF日付,曜日,出勤時間,10時便出発時間,10便件数,10便発km,10便着km,10便走行km,12便件数,12便発km,12便着km,12便走行km,14便件数,14便発km,14便着km,14便走行km,16便件数,16便発km,16便着km,16便走行km,18便件数,18便発km,18便着km,18便走行km,合計件数,合計走行km,備考\n";
+
+      recordsData.forEach(r => {
+        const row = [
+          r.date, r.dow, r.startTime, r.dep10Time,
+          r.b10.count, r.b10.startKm, r.b10.endKm, r.b10.dist,
+          r.b12.count, r.b12.startKm, r.b12.endKm, r.b12.dist,
+          r.b14.count, r.b14.startKm, r.b14.endKm, r.b14.dist,
+          r.b16.count, r.b16.startKm, r.b16.endKm, r.b16.dist,
+          r.b18.count, r.b18.startKm, r.b18.endKm, r.b18.dist,
+          r.totalOrders, r.totalKm, `"${(r.note || '').replace(/"/g, '""')}"`
+        ].join(",");
+        csvContent += row + "\n";
+      });
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute("download", `ベイシア稼働記録_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function exportJSON() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(recordsData, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `ベイシア稼働記録_バックアップ_${new Date().toISOString().split('T')[0]}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    function importJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (Array.isArray(imported)) {
+            if (confirm(`ファイルから ${imported.length} 件のデータをインポートしますか？現在のデータは上書きされます。`)) {
+              recordsData = imported;
+              saveToStorage();
+              renderKPIs();
+              renderTimeSlotBreakdown();
+              renderTable();
+              alert('インポートが完了しました。');
+            }
+          } else {
+            alert('有効な稼働記録JSON形式ではありません。');
+          }
+        } catch (err) {
+          alert('ファイルの読み込み中にエラーが発生しました。');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function resetDataConfirmation() {
+      if (confirm('Excelから読み込んだ初期データにリセットしますか？手動で編集した変更内容は破棄されます。')) {
+        recordsData = JSON.parse(JSON.stringify(INITIAL_DATA));
+        saveToStorage();
+        renderKPIs();
+        renderTimeSlotBreakdown();
+        renderTable();
+        alert('初期データに復元されました。');
+      }
+    }
+  </script>
+</body>
+</html>
