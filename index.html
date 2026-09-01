@@ -52,8 +52,11 @@
     }
     @media print {
       @page {
-        size: A4;
-        margin: 20mm;
+        size: A4 portrait;
+        margin: 10mm;
+      }
+      html, body {
+        height: 100%;
       }
       body > *:not(#printPreviewModal) {
         display: none !important;
@@ -73,6 +76,39 @@
         max-width: none !important;
         overflow: visible !important;
         border-radius: 0 !important;
+      }
+      /* A4用紙1枚に収まるようコンパクト化し、ページ分割を防ぐ */
+      #printArea {
+        padding: 0 !important;
+      }
+      #printArea .print-header h1 {
+        font-size: 18px !important;
+      }
+      #printArea .print-header .blank-line {
+        font-size: 11px !important;
+        margin-top: 4px !important;
+      }
+      #printArea .logo {
+        font-size: 13px !important;
+      }
+      #printArea .logo .brand-sub {
+        font-size: 9px !important;
+      }
+      #printArea .record-table {
+        font-size: 9px !important;
+      }
+      #printArea .record-table th, #printArea .record-table td {
+        padding: 2px 3px !important;
+      }
+      #printArea .totals-table th, #printArea .totals-table td {
+        padding: 3px 8px !important;
+        font-size: 10px !important;
+      }
+      #printArea .footer-right {
+        font-size: 10px !important;
+      }
+      #printArea table, #printArea tr {
+        page-break-inside: avoid;
       }
     }
   </style>
