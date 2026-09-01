@@ -62,14 +62,14 @@
       </div>
       <div>
         <h2 class="text-xl font-bold text-slate-800">ベイシア稼働記録</h2>
-        <p class="text-xs text-slate-500 mt-1">セキュリティのためパスワード（PIN）を入力してください</p>
+        <p id="authMessage" class="text-xs text-slate-500 mt-1">セキュリティのためPINコードを入力してください</p>
       </div>
       <form onsubmit="verifyPIN(event)" class="space-y-4">
         <div>
-          <input type="password" id="pinInput" placeholder="PINコードを入力 (初期: 1234)" pattern="[0-9]*" inputmode="numeric" required class="w-full text-center tracking-widest text-2xl font-bold py-3 px-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          <input type="password" id="pinInput" placeholder="PINコードを入力" pattern="[0-9]*" inputmode="numeric" required class="w-full text-center tracking-widest text-2xl font-bold py-3 px-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
           <p id="pinError" class="text-xs text-red-500 mt-2 font-medium hidden">PINコードが正しくありません</p>
         </div>
-        <button type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl transition shadow-lg">
+        <button id="authSubmit" type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl transition shadow-lg">
           ロック解除
         </button>
       </form>
@@ -78,7 +78,7 @@
 
   <!-- Header -->
   <header class="bg-emerald-800 text-white shadow-md sticky top-0 z-30">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-0 min-h-16 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
       <div class="flex items-center space-x-3">
         <div class="bg-white text-emerald-800 p-2 rounded-lg font-bold text-xl flex items-center justify-center w-10 h-10 shadow">
           <i class="fa-solid font-bold fa-truck-fast"></i>
@@ -88,7 +88,7 @@
           <p class="text-xs text-emerald-200">稼働記録 & 配送メーター管理システム</p>
         </div>
       </div>
-      <div class="flex items-center space-x-2 sm:space-x-3">
+      <div class="flex items-center justify-end w-full sm:w-auto space-x-2 sm:space-x-3">
         <button onclick="exportCSV()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center space-x-1 shadow-sm">
           <i class="fa-solid fa-file-csv"></i>
           <span class="hidden sm:inline">CSV出力</span>
@@ -102,11 +102,8 @@
           <span class="hidden sm:inline">復元</span>
           <input type="file" id="importFileInput" accept=".json" class="hidden" onchange="importJSON(event)">
         </label>
-        <button onclick="resetDataConfirmation()" class="bg-red-700 hover:bg-red-600 text-white px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition" title="初期データにリセット">
-          <i class="fa-solid fa-rotate-left"></i>
-        </button>
-        <button onclick="changePIN()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition" title="PINコード変更">
-          <i class="fa-solid fa-key"></i>
+        <button onclick="openSettings()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition" title="設定">
+          <i class="fa-solid fa-gear"></i>
         </button>
         <button onclick="logout()" class="bg-slate-700 hover:bg-slate-600 text-white px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition" title="ロック・ログアウト">
           <i class="fa-solid fa-lock"></i>
@@ -430,11 +427,12 @@
 
     // PIN Authentication Logic
     function getStoredPIN() {
-      return localStorage.getItem(PIN_KEY) || '1234';
+      return localStorage.getItem(PIN_KEY);
     }
 
     function checkAuth() {
       const isAuthed = sessionStorage.getItem('beisia_authed') === 'true';
+      const hasPIN = Boolean(getStoredPIN());
       const authOverlay = document.getElementById('authOverlay');
       if (isAuthed) {
         authOverlay.classList.add('hidden');
@@ -442,6 +440,11 @@
         authOverlay.classList.remove('hidden');
         document.getElementById('pinInput').value = '';
         document.getElementById('pinError').classList.add('hidden');
+        document.getElementById('authMessage').textContent = hasPIN
+          ? 'セキュリティのためPINコードを入力してください'
+          : '初回設定です。4桁以上のPINコードを登録してください';
+        document.getElementById('pinInput').placeholder = hasPIN ? 'PINコードを入力' : '4桁以上のPINコードを設定';
+        document.getElementById('authSubmit').textContent = hasPIN ? 'ロック解除' : 'PINコードを設定して開始';
       }
     }
 
@@ -449,6 +452,17 @@
       event.preventDefault();
       const input = document.getElementById('pinInput').value;
       const correctPin = getStoredPIN();
+      if (!correctPin) {
+        if (!/^\d{4,}$/.test(input)) {
+          document.getElementById('pinError').textContent = 'PINコードは4桁以上の数字で設定してください';
+          document.getElementById('pinError').classList.remove('hidden');
+          return;
+        }
+        localStorage.setItem(PIN_KEY, input);
+        sessionStorage.setItem('beisia_authed', 'true');
+        document.getElementById('authOverlay').classList.add('hidden');
+        return;
+      }
       if (input === correctPin) {
         sessionStorage.setItem('beisia_authed', 'true');
         document.getElementById('authOverlay').classList.add('hidden');
@@ -481,6 +495,17 @@
       }
       localStorage.setItem(PIN_KEY, newPin);
       alert(`PINコードを変更しました。（新しいPIN: ${newPin}）`);
+    }
+
+    function openSettings() {
+      const enteredPin = prompt('設定を開くため、現在のPINコードを入力してください:');
+      if (enteredPin !== getStoredPIN()) {
+        if (enteredPin !== null) alert('PINコードが正しくありません。');
+        return;
+      }
+      const action = prompt('設定メニュー\n1: PINコードを変更\n2: 初期データにリセット\n番号を入力してください:');
+      if (action === '1') changePIN();
+      if (action === '2') resetDataConfirmation();
     }
 
     // Initialize application
@@ -1001,12 +1026,15 @@
     }
 
     function resetDataConfirmation() {
-      if (confirm('Excelから読み込んだ初期データにリセットしますか？手動で編集した変更内容は破棄されます。')) {
+      const confirmation = prompt('全データを初期状態に戻します。続行するには RESET と入力してください:');
+      if (confirmation === 'RESET') {
         recordsData = JSON.parse(JSON.stringify(INITIAL_DATA));
         saveToStorage();
         populateMonthOptions();
         renderApp();
         alert('初期データに復元されました。');
+      } else if (confirmation !== null) {
+        alert('入力が一致しないため、初期化は実行されませんでした。');
       }
     }
 
