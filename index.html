@@ -53,7 +53,7 @@
     @media print {
       @page {
         size: A4;
-        margin: 12mm;
+        margin: 20mm;
       }
       body > *:not(#printPreviewModal) {
         display: none !important;
@@ -471,7 +471,7 @@
           </button>
         </div>
       </div>
-      <div id="printArea" class="p-6"></div>
+      <div id="printArea" class="p-10"></div>
     </div>
   </div>
 
@@ -1220,14 +1220,15 @@
       const area = document.getElementById('printArea');
       area.innerHTML = `
         <style>
-          #printArea table { width: 100%; border-collapse: collapse; font-size: 12px; }
-          #printArea th, #printArea td { border: 1px solid #333; padding: 5px; text-align: center; }
-          #printArea .print-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; flex-wrap: wrap; gap: 12px; }
+          #printArea table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+          #printArea th:not(:first-child), #printArea td:not(:first-child) { width: 16%; }
+          #printArea th, #printArea td { border: 1px solid #333; padding: 8px; text-align: center; }
+          #printArea .print-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
           #printArea .print-header h1 { font-size: 20px; margin: 0 0 8px 0; }
           #printArea .print-header .blank-line { font-size: 13px; margin-top: 6px; white-space: nowrap; }
           #printArea .print-header-right { text-align: right; }
-          #printArea .print-summary { margin-bottom: 10px; font-size: 12px; }
-          #printArea .print-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 16px; font-size: 12px; flex-wrap: wrap; gap: 8px; }
+          #printArea .print-summary { margin-bottom: 16px; font-size: 12px; }
+          #printArea .print-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 24px; font-size: 12px; flex-wrap: wrap; gap: 8px; }
           #printArea .print-footer .footer-right { text-align: right; line-height: 1.6; }
           @media screen and (max-width: 480px) {
             #printArea .print-header { flex-direction: column; }
