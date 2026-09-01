@@ -442,9 +442,7 @@
       <form onsubmit="executePrint(event)" class="p-6 space-y-5">
         <div>
           <label class="block text-xs font-bold text-slate-700 mb-1">対象月</label>
-          <select id="printMonthSelect" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 bg-white">
-            <!-- JS dynamically populates months -->
-          </select>
+          <input type="month" id="printMonthSelect" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 bg-white">
         </div>
         <div class="flex justify-end gap-3">
           <button type="button" onclick="closePrintModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 hover:bg-slate-100">キャンセル</button>
@@ -1130,25 +1128,12 @@
     // Print Feature
     function openPrintModal() {
       const sel = document.getElementById('printMonthSelect');
-      sel.innerHTML = '';
-
-      const months = new Set();
-      recordsData.forEach(r => {
-        if (r.date && r.date.length >= 7) months.add(r.date.substring(0, 7));
-      });
-      const sortedMonths = Array.from(months).sort().reverse();
-
-      sortedMonths.forEach(m => {
-        const [yyyy, mm] = m.split('-');
-        const opt = document.createElement('option');
-        opt.value = m;
-        opt.textContent = `${yyyy}年${mm}月`;
-        sel.appendChild(opt);
-      });
 
       const currentMonth = document.getElementById('monthSelect')?.value;
-      if (currentMonth && currentMonth !== 'all' && sortedMonths.includes(currentMonth)) {
+      if (currentMonth && currentMonth !== 'all') {
         sel.value = currentMonth;
+      } else {
+        sel.value = getCurrentJSTDate().substring(0, 7);
       }
 
       document.getElementById('printModal').classList.remove('hidden');
