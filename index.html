@@ -220,19 +220,19 @@
         <table class="w-full text-xs sm:text-sm text-left border-collapse">
           <thead>
             <tr class="bg-slate-800 text-slate-200 border-b border-slate-700">
-              <th class="py-3 px-3 font-semibold text-center w-24">日付</th>
-              <th class="py-3 px-2 font-semibold text-center w-16">出勤</th>
-              <th class="py-3 px-2 font-semibold text-center w-16">10時発</th>
-              <th class="py-3 px-2 font-semibold text-center w-20 leading-tight">業務終了<br>時間</th>
-              <th class="py-3 px-2 font-semibold text-center border-l border-slate-700">10時便</th>
-              <th class="py-3 px-2 font-semibold text-center">12時便</th>
-              <th class="py-3 px-2 font-semibold text-center">14時便</th>
-              <th class="py-3 px-2 font-semibold text-center">16時便</th>
-              <th class="py-3 px-2 font-semibold text-center">18時便</th>
-              <th class="py-3 px-2 font-semibold text-center bg-emerald-900 text-emerald-100">合計件数</th>
-              <th class="py-3 px-2 font-semibold text-center bg-emerald-900 text-emerald-100">総走行距離</th>
-              <th class="py-3 px-3 font-semibold text-left w-40 sm:w-56">特記事項・備考</th>
-              <th class="py-3 px-3 font-semibold text-center w-20">操作</th>
+              <th class="py-3 px-3 font-semibold text-center whitespace-nowrap">日付</th>
+              <th class="py-3 px-2 font-semibold text-center whitespace-nowrap">出勤時間</th>
+              <th class="py-3 px-2 font-semibold text-center whitespace-nowrap">10時発時間</th>
+              <th class="py-3 px-2 font-semibold text-center whitespace-nowrap">業務終了時間</th>
+              <th class="py-3 px-2 font-semibold text-center whitespace-nowrap border-l border-slate-700">10時便</th>
+              <th class="py-3 px-2 font-semibold text-center whitespace-nowrap">12時便</th>
+              <th class="py-3 px-2 font-semibold text-center whitespace-nowrap">14時便</th>
+              <th class="py-3 px-2 font-semibold text-center whitespace-nowrap">16時便</th>
+              <th class="py-3 px-2 font-semibold text-center whitespace-nowrap">18時便</th>
+              <th class="py-3 px-2 font-semibold text-center whitespace-nowrap bg-emerald-900 text-emerald-100">合計件数</th>
+              <th class="py-3 px-2 font-semibold text-center whitespace-nowrap bg-emerald-900 text-emerald-100">総走行距離</th>
+              <th class="py-3 px-3 font-semibold text-left whitespace-nowrap" style="max-width:180px;">特記事項・備考</th>
+              <th class="py-3 px-3 font-semibold text-center whitespace-nowrap">操作</th>
             </tr>
           </thead>
           <tbody id="recordTableBody" class="divide-y divide-slate-200">
@@ -777,9 +777,9 @@
             <span class="font-bold text-slate-800">${r.date}</span>
             <span class="text-xs ml-1 ${dowBadgeClass}">(${r.dow || '-'})</span>
           </td>
-          <td class="py-3 px-2 text-center text-slate-700 font-medium">${r.startTime || '-'}</td>
-          <td class="py-3 px-2 text-center text-slate-700 font-medium">${r.dep10Time || '-'}</td>
-          <td class="py-3 px-2 text-center text-slate-700 font-medium">${r.endTime || '-'}</td>
+          <td class="py-3 px-2 text-center text-slate-700 font-medium whitespace-nowrap">${r.startTime || '-'}</td>
+          <td class="py-3 px-2 text-center text-slate-700 font-medium whitespace-nowrap">${r.dep10Time || '-'}</td>
+          <td class="py-3 px-2 text-center text-slate-700 font-medium whitespace-nowrap">${r.endTime || '-'}</td>
           <td class="py-3 px-2 text-center text-xs border-l border-slate-200">${formatSlot(r.b10, 'b10')}</td>
           <td class="py-3 px-2 text-center text-xs">${formatSlot(r.b12, 'b12')}</td>
           <td class="py-3 px-2 text-center text-xs">${formatSlot(r.b14, 'b14')}</td>
@@ -788,7 +788,7 @@
           <td class="py-3 px-2 text-center font-bold text-emerald-700 bg-emerald-50/60">${r.totalOrders > 0 ? r.totalOrders + ' 件' : '-'}</td>
           <td class="py-3 px-2 text-center font-bold text-emerald-800 bg-emerald-50/60">${r.totalKm > 0 ? r.totalKm + ' km' : '-'}</td>
           <td class="py-3 px-3 text-left text-xs text-slate-600" title="${r.note}">
-            <div class="max-w-[180px] sm:max-w-xs truncate">${r.note || '-'}</div>
+            <div style="max-width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${r.note || '-'}</div>
           </td>
           <td class="py-3 px-3 text-center whitespace-nowrap">
             <button onclick="editRecord(${r.id})" class="text-emerald-700 hover:text-emerald-900 p-1.5 hover:bg-emerald-50 rounded transition" title="編集">
@@ -1114,22 +1114,14 @@
           totalKm += km;
         }
 
-        const formatSlot = slot => (slot && slot.count) ? `${slot.count}件${slot.dist && slot.dist !== '0' ? `(${slot.dist}km)` : ''}` : '-';
-
         return `
           <tr>
             <td>${r.date} (${r.dow || '-'})</td>
             <td>${r.startTime || '-'}</td>
             <td>${r.dep10Time || '-'}</td>
             <td>${r.endTime || '-'}</td>
-            <td>${formatSlot(r.b10)}</td>
-            <td>${formatSlot(r.b12)}</td>
-            <td>${formatSlot(r.b14)}</td>
-            <td>${formatSlot(r.b16)}</td>
-            <td>${formatSlot(r.b18)}</td>
             <td>${orders > 0 ? orders + '件' : '-'}</td>
             <td>${km > 0 ? km + 'km' : '-'}</td>
-            <td>${r.note || '-'}</td>
           </tr>
         `;
       }).join('');
@@ -1137,8 +1129,8 @@
       const area = document.getElementById('printArea');
       area.innerHTML = `
         <style>
-          #printArea table { width: 100%; border-collapse: collapse; font-size: 10px; }
-          #printArea th, #printArea td { border: 1px solid #333; padding: 4px; text-align: center; }
+          #printArea table { width: 100%; border-collapse: collapse; font-size: 12px; }
+          #printArea th, #printArea td { border: 1px solid #333; padding: 5px; text-align: center; }
           #printArea h1 { font-size: 16px; margin-bottom: 4px; }
           #printArea .print-summary { margin-bottom: 10px; font-size: 12px; }
         </style>
@@ -1147,9 +1139,8 @@
         <table>
           <thead>
             <tr>
-              <th>日付</th><th>出勤</th><th>10時発</th><th>業務終了時間</th>
-              <th>10時便</th><th>12時便</th><th>14時便</th><th>16時便</th><th>18時便</th>
-              <th>合計件数</th><th>総走行距離</th><th>備考</th>
+              <th>日付</th><th>出勤時間</th><th>10時出発時間</th><th>業務終了時間</th>
+              <th>1日の件数</th><th>1日の走行距離</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
