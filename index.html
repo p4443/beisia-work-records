@@ -1148,16 +1148,32 @@
         `;
       }).join('');
 
+      const offDays = monthRecords.length - workDays;
+
       const area = document.getElementById('printArea');
       area.innerHTML = `
         <style>
           #printArea table { width: 100%; border-collapse: collapse; font-size: 12px; }
           #printArea th, #printArea td { border: 1px solid #333; padding: 5px; text-align: center; }
-          #printArea h1 { font-size: 16px; margin-bottom: 4px; }
+          #printArea .print-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+          #printArea .print-header h1 { font-size: 20px; margin: 0 0 8px 0; }
+          #printArea .print-header .blank-line { font-size: 13px; margin-top: 6px; white-space: nowrap; }
+          #printArea .print-header-right { text-align: right; }
           #printArea .print-summary { margin-bottom: 10px; font-size: 12px; }
+          #printArea .print-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 16px; font-size: 12px; }
+          #printArea .print-footer .footer-right { text-align: right; }
         </style>
-        <h1>${yyyy}年${mm}月 稼働記録表</h1>
-        <div class="print-summary">稼働日数: ${workDays}日 / 総配送件数: ${totalOrders}件 / 総走行距離: ${totalKm}km</div>
+        <div class="print-header">
+          <div class="print-header-left">
+            <h1>稼働月報</h1>
+            <div class="blank-line">店名：＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿</div>
+          </div>
+          <div class="print-header-right">
+            <div class="blank-line">${yyyy}年${mm}月　　日</div>
+            <div class="blank-line">氏名：＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿</div>
+          </div>
+        </div>
+        <div class="print-summary">総配送件数: ${totalOrders}件 / 総走行距離: ${totalKm}km</div>
         <table>
           <thead>
             <tr>
@@ -1167,6 +1183,10 @@
           </thead>
           <tbody>${rows}</tbody>
         </table>
+        <div class="print-footer">
+          <div class="footer-left">出勤日数：${workDays}日　　休日日数：${offDays}日</div>
+          <div class="footer-right">※月末作業終了後、稼働月報をFAXしてください！<br>愛商物流株式会社　FAX03-3505-8989</div>
+        </div>
       `;
     }
 
