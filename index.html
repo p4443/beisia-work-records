@@ -332,259 +332,38 @@
 
   <!-- Application Logic -->
   <script>
-    // Initial Dataset extracted from Excel
-    const INITIAL_DATA = [
-      {
-        "id": 1, "date": "2026-01-01", "dow": "木", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
-        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
-      },
-      {
-        "id": 2, "date": "2026-01-02", "dow": "金", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
-        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
-      },
-      {
-        "id": 3, "date": "2026-01-03", "dow": "土", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
-        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
-      },
-      {
-        "id": 4, "date": "2026-01-04", "dow": "日", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
-        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
-      },
-      {
-        "id": 5, "date": "2026-01-05", "dow": "月", "note": "18件数", "startTime": "9:20", "dep10Time": "9:50", "totalOrders": "21", "totalKm": "79",
-        "b10": { "count": "4", "startKm": "871", "endKm": "882", "dist": "11" },
-        "b12": { "count": "4", "startKm": "899", "endKm": "912", "dist": "13" },
-        "b14": { "count": "4", "startKm": "914", "endKm": "935", "dist": "21" },
-        "b16": { "count": "4", "startKm": "937", "endKm": "959", "dist": "22" },
-        "b18": { "count": "5", "startKm": "959", "endKm": "971", "dist": "12" }
-      },
-      {
-        "id": 6, "date": "2026-01-06", "dow": "火", "note": "18:55", "startTime": "9:05", "dep10Time": "9:48", "totalOrders": "28", "totalKm": "104",
-        "b10": { "count": "4", "startKm": "982", "endKm": "999", "dist": "17" },
-        "b12": { "count": "6", "startKm": "8", "endKm": "30", "dist": "22" },
-        "b14": { "count": "6", "startKm": "30", "endKm": "52", "dist": "22" },
-        "b16": { "count": "6", "startKm": "59", "endKm": "82", "dist": "23" },
-        "b18": { "count": "6", "startKm": "82", "endKm": "102", "dist": "20" }
-      },
-      {
-        "id": 7, "date": "2026-01-07", "dow": "水", "note": "18件数", "startTime": "9:20", "dep10Time": "19:05", "totalOrders": "19", "totalKm": "102",
-        "b10": { "count": "2", "startKm": "130", "endKm": "145", "dist": "15" },
-        "b12": { "count": "4", "startKm": "155", "endKm": "174", "dist": "19" },
-        "b14": { "count": "4", "startKm": "180", "endKm": "201", "dist": "21" },
-        "b16": { "count": "5", "startKm": "201", "endKm": "221", "dist": "20" },
-        "b18": { "count": "4", "startKm": "231", "endKm": "258", "dist": "27" }
-      },
-      {
-        "id": 8, "date": "2026-01-08", "dow": "木", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
-        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
-      },
-      {
-        "id": 9, "date": "2026-01-09", "dow": "金", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
-        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
-      },
-      {
-        "id": 10, "date": "2026-01-10", "dow": "土", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
-        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
-      },
-      {
-        "id": 11, "date": "2026-01-11", "dow": "日", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
-        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
-      },
-      {
-        "id": 12, "date": "2026-01-12", "dow": "月", "note": "18件数", "startTime": "19:00", "dep10Time": "9:46", "totalOrders": "30", "totalKm": "117",
-        "b10": { "count": "6", "startKm": "632", "endKm": "657", "dist": "25" },
-        "b12": { "count": "6", "startKm": "657", "endKm": "683", "dist": "26" },
-        "b14": { "count": "6", "startKm": "683", "endKm": "698", "dist": "15" },
-        "b16": { "count": "6", "startKm": "698", "endKm": "723", "dist": "25" },
-        "b18": { "count": "6", "startKm": "723", "endKm": "749", "dist": "26" }
-      },
-      {
-        "id": 13, "date": "2026-01-13", "dow": "火", "note": "18件数", "startTime": "18:50", "dep10Time": "9:45", "totalOrders": "28", "totalKm": "124",
-        "b10": { "count": "4", "startKm": "778", "endKm": "800", "dist": "22" },
-        "b12": { "count": "6", "startKm": "804", "endKm": "833", "dist": "29" },
-        "b14": { "count": "6", "startKm": "833", "endKm": "853", "dist": "20" },
-        "b16": { "count": "6", "startKm": "853", "endKm": "876", "dist": "23" },
-        "b18": { "count": "6", "startKm": "878", "endKm": "908", "dist": "30" }
-      },
-      {
-        "id": 14, "date": "2026-01-14", "dow": "水", "note": "19:25", "startTime": "9:05", "dep10Time": "9:48", "totalOrders": "19", "totalKm": "104",
-        "b10": { "count": "1", "startKm": "931", "endKm": "948", "dist": "17" },
-        "b12": { "count": "6", "startKm": "963", "endKm": "989", "dist": "26" },
-        "b14": { "count": "3", "startKm": "96", "endKm": "115", "dist": "19" },
-        "b16": { "count": "3", "startKm": "18", "endKm": "32", "dist": "14" },
-        "b18": { "count": "6", "startKm": "42", "endKm": "70", "dist": "28" }
-      },
-      {
-        "id": 15, "date": "2026-01-15", "dow": "木", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
-        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
-      },
-      {
-        "id": 16, "date": "2026-01-16", "dow": "金", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
-        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
-      },
-      {
-        "id": 17, "date": "2026-01-17", "dow": "土", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
-        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
-      },
-      {
-        "id": 18, "date": "2026-01-18", "dow": "日", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
-        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
-      },
-      {
-        "id": 19, "date": "2026-01-19", "dow": "月", "note": "19:25", "startTime": "18:50", "dep10Time": "9:48", "totalOrders": "26", "totalKm": "109",
-        "b10": { "count": "5", "startKm": "713", "endKm": "745", "dist": "32" },
-        "b12": { "count": "3", "startKm": "749", "endKm": "766", "dist": "17" },
-        "b14": { "count": "6", "startKm": "769", "endKm": "786", "dist": "17" },
-        "b16": { "count": "6", "startKm": "786", "endKm": "807", "dist": "21" },
-        "b18": { "count": "6", "startKm": "812", "endKm": "834", "dist": "22" }
-      },
-      {
-        "id": 20, "date": "2026-01-20", "dow": "火", "note": "9:15", "startTime": "19:00", "dep10Time": "19:05", "totalOrders": "26", "totalKm": "92",
-        "b10": { "count": "2", "startKm": "844", "endKm": "856", "dist": "12" },
-        "b12": { "count": "6", "startKm": "862", "endKm": "882", "dist": "20" },
-        "b14": { "count": "6", "startKm": "882", "endKm": "902", "dist": "20" },
-        "b16": { "count": "6", "startKm": "902", "endKm": "924", "dist": "22" },
-        "b18": { "count": "6", "startKm": "930", "endKm": "948", "dist": "18" }
-      },
-      {
-        "id": 21, "date": "2026-01-21", "dow": "水", "note": "19:25", "startTime": "9:25", "dep10Time": "9:48", "totalOrders": "19", "totalKm": "86",
-        "b10": { "count": "4", "startKm": "983", "endKm": "1005", "dist": "22" },
-        "b12": { "count": "3", "startKm": "18", "endKm": "35", "dist": "17" },
-        "b14": { "count": "3", "startKm": "37", "endKm": "54", "dist": "17" },
-        "b16": { "count": "2", "startKm": "54", "endKm": "67", "dist": "13" },
-        "b18": { "count": "7", "startKm": "80", "endKm": "97", "dist": "17" }
-      },
-      {
-        "id": 22, "date": "2026-01-22", "dow": "木", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
-        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
-      },
-      {
-        "id": 23, "date": "2026-01-23", "dow": "金", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
-        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
-      },
-      {
-        "id": 24, "date": "2026-01-24", "dow": "土", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
-        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
-      },
-      {
-        "id": 25, "date": "2026-01-25", "dow": "日", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
-        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
-      },
-      {
-        "id": 26, "date": "2026-01-26", "dow": "月", "note": "9:15", "startTime": "19:00", "dep10Time": "9:49", "totalOrders": "19", "totalKm": "77",
-        "b10": { "count": "3", "startKm": "438", "endKm": "455", "dist": "17" },
-        "b12": { "count": "6", "startKm": "459", "endKm": "481", "dist": "22" },
-        "b14": { "count": "5", "startKm": "481", "endKm": "493", "dist": "12" },
-        "b16": { "count": "1", "startKm": "493", "endKm": "502", "dist": "9" },
-        "b18": { "count": "4", "startKm": "514", "endKm": "531", "dist": "17" }
-      },
-      {
-        "id": 27, "date": "2026-01-27", "dow": "火", "note": "19:25", "startTime": "9:05", "dep10Time": "9:50", "totalOrders": "9", "totalKm": "45",
-        "b10": { "count": "1", "startKm": "555", "endKm": "560", "dist": "5" },
-        "b12": { "count": "1", "startKm": "555", "endKm": "559", "dist": "4" },
-        "b14": { "count": "2", "startKm": "559", "endKm": "571", "dist": "12" },
-        "b16": { "count": "1", "startKm": "668", "endKm": "677", "dist": "9" },
-        "b18": { "count": "4", "startKm": "691", "endKm": "706", "dist": "15" }
-      },
-      {
-        "id": 28, "date": "2026-01-28", "dow": "水", "note": "18件数", "startTime": "19:10", "dep10Time": "18:35", "totalOrders": "8", "totalKm": "47",
-        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b14": { "count": "2", "startKm": "783", "endKm": "796", "dist": "13" },
-        "b16": { "count": "1", "startKm": "808", "endKm": "819", "dist": "11" },
-        "b18": { "count": "5", "startKm": "822", "endKm": "845", "dist": "23" }
-      },
-      {
-        "id": 29, "date": "2026-01-29", "dow": "木", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
-        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
-      },
-      {
-        "id": 30, "date": "2026-01-30", "dow": "金", "note": "10:00", "startTime": "9:20", "dep10Time": "9:00", "totalOrders": "4", "totalKm": "27",
-        "b10": { "count": "3", "startKm": "15", "endKm": "33", "dist": "18" },
-        "b12": { "count": "1", "startKm": "43", "endKm": "52", "dist": "9" },
-        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
-      },
-      {
-        "id": 31, "date": "2026-01-31", "dow": "土", "note": "", "startTime": "", "dep10Time": "", "totalOrders": "0", "totalKm": "0",
-        "b10": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b12": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b14": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b16": { "count": "", "startKm": "", "endKm": "", "dist": "0" },
-        "b18": { "count": "", "startKm": "", "endKm": "", "dist": "0" }
-      }
-    ];
+    // 2026年9月スタート用の空データ枠を生成
+    function createInitialSeptemberData() {
+      const dows = ['日', '月', '火', '水', '木', '金', '土'];
+      const septemberRecords = [];
+      for (let day = 1; day <= 30; day++) {
+        const dd = day < 10 ? `0${day}` : `${day}`;
+        const dateStr = `2026-09-${dd}`;
+        const dateObj = new Date(dateStr);
+        const dow = dows[dateObj.getDay()];
 
-    const STORAGE_KEY = 'beisia_work_records_v1';
+        septemberRecords.push({
+          id: day,
+          date: dateStr,
+          dow: dow,
+          note: '',
+          startTime: '',
+          dep10Time: '',
+          totalOrders: '0',
+          totalKm: '0',
+          b10: { count: '', startKm: '', endKm: '', dist: '0' },
+          b12: { count: '', startKm: '', endKm: '', dist: '0' },
+          b14: { count: '', startKm: '', endKm: '', dist: '0' },
+          b16: { count: '', startKm: '', endKm: '', dist: '0' },
+          b18: { count: '', startKm: '', endKm: '', dist: '0' }
+        });
+      }
+      return septemberRecords;
+    }
+
+    const INITIAL_DATA = createInitialSeptemberData();
+
+    const STORAGE_KEY = 'beisia_work_records_v2';
     const PIN_KEY = 'beisia_pin_code_v1';
     let recordsData = [];
 
