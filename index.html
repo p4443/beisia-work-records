@@ -1203,14 +1203,18 @@
           totalKm += km;
         }
 
+        const day = parseInt(r.date.split('-')[2]);
+
         return `
           <tr>
-            <td>${r.date} (${r.dow || '-'})</td>
-            <td>${r.startTime || '-'}</td>
-            <td>${r.dep10Time || '-'}</td>
-            <td>${r.endTime || '-'}</td>
-            <td>${orders > 0 ? orders + '件' : '-'}</td>
-            <td>${km > 0 ? km + 'km' : '-'}</td>
+            <td>${day}</td>
+            <td>${r.dow || ''}</td>
+            <td>${r.startTime || ''}</td>
+            <td>${r.dep10Time || ''}</td>
+            <td>${r.endTime || ''}</td>
+            <td>${orders > 0 ? orders + '件' : ''}</td>
+            <td>${km > 0 ? km + 'km' : ''}</td>
+            <td>${r.note || ''}</td>
           </tr>
         `;
       }).join('');
@@ -1221,45 +1225,63 @@
       area.innerHTML = `
         <style>
           #printArea table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
-          #printArea th:not(:first-child), #printArea td:not(:first-child) { width: 16%; }
-          #printArea th, #printArea td { border: 1px solid #333; padding: 8px; text-align: center; }
+          #printArea th, #printArea td { border: 1px solid #333; padding: 6px 4px; text-align: center; }
+          #printArea .record-table th:nth-child(1), #printArea .record-table td:nth-child(1) { width: 6%; }
+          #printArea .record-table th:nth-child(2), #printArea .record-table td:nth-child(2) { width: 8%; }
+          #printArea .record-table th:nth-child(3), #printArea .record-table td:nth-child(3),
+          #printArea .record-table th:nth-child(4), #printArea .record-table td:nth-child(4),
+          #printArea .record-table th:nth-child(5), #printArea .record-table td:nth-child(5) { width: 12%; }
+          #printArea .record-table th:nth-child(6), #printArea .record-table td:nth-child(6),
+          #printArea .record-table th:nth-child(7), #printArea .record-table td:nth-child(7) { width: 11%; }
+          #printArea .record-table th:nth-child(8), #printArea .record-table td:nth-child(8) { width: 28%; text-align: left; }
           #printArea .print-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
-          #printArea .print-header h1 { font-size: 20px; margin: 0 0 8px 0; }
-          #printArea .print-header .blank-line { font-size: 13px; margin-top: 6px; white-space: nowrap; }
+          #printArea .print-header h1 { font-size: 24px; margin: 0 0 8px 0; }
+          #printArea .logo { display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 16px; color: #ea580c; }
+          #printArea .logo .fa-house { color: #ea580c; }
+          #printArea .logo .brand-sub { display: block; font-size: 11px; color: #16a34a; font-weight: bold; }
+          #printArea .print-header .blank-line { font-size: 13px; margin-top: 8px; white-space: nowrap; }
           #printArea .print-header-right { text-align: right; }
-          #printArea .print-summary { margin-bottom: 16px; font-size: 12px; }
-          #printArea .print-footer { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 24px; font-size: 12px; flex-wrap: wrap; gap: 8px; }
-          #printArea .print-footer .footer-right { text-align: right; line-height: 1.6; }
+          #printArea .print-footer { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 24px; font-size: 12px; flex-wrap: wrap; gap: 16px; }
+          #printArea .totals-table { width: auto; border-collapse: collapse; }
+          #printArea .totals-table th, #printArea .totals-table td { border: 1px solid #333; padding: 6px 12px; text-align: center; }
+          #printArea .footer-right { text-align: right; line-height: 1.6; }
           @media screen and (max-width: 480px) {
             #printArea .print-header { flex-direction: column; }
             #printArea .print-header-right { text-align: left; }
             #printArea .print-footer { flex-direction: column; align-items: flex-start; }
-            #printArea .print-footer .footer-right { text-align: left; }
+            #printArea .footer-right { text-align: left; }
           }
         </style>
         <div class="print-header">
           <div class="print-header-left">
             <h1>稼働月報</h1>
-            <div class="blank-line">店名：＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿</div>
+            <div class="logo">
+              <i class="fa-solid fa-house"></i>
+              <span>Beisia<span class="brand-sub">ネットスーパー</span></span>
+            </div>
           </div>
           <div class="print-header-right">
-            <div class="blank-line">${yyyy}年${mm}月　　日</div>
+            <div class="blank-line">${yyyy}年　${mm}月</div>
             <div class="blank-line">氏名：＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿</div>
+            <div class="blank-line">店：＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿</div>
           </div>
         </div>
-        <div class="print-summary">総配送件数: ${totalOrders}件 / 総走行距離: ${totalKm}km</div>
-        <table>
+        <table class="record-table">
           <thead>
             <tr>
-              <th>日付</th><th>出勤</th><th>出発</th><th>帰庫・退勤</th>
-              <th>1日の件数</th><th>1日の走行距離</th>
+              <th>日</th><th>曜日</th><th>出勤</th><th>出発</th><th>帰庫・退勤</th>
+              <th>配達件数</th><th>稼働距離</th><th>備考</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
         </table>
         <div class="print-footer">
-          <div class="footer-left">出勤日数：${workDays}日　　休日日数：${offDays}日</div>
-          <div class="footer-right">※月末作業終了後、稼働月報をFAXしてください！<br>愛商物流株式会社　FAX03-3505-8989</div>
+          <table class="totals-table">
+            <tr><th colspan="2">合計</th></tr>
+            <tr><td>出勤日数</td><td>${workDays}日</td></tr>
+            <tr><td>休日日数</td><td>${offDays}日</td></tr>
+          </table>
+          <div class="footer-right">※月末作業終了後、稼働月報をFAXして下さい！<br>愛商物流株式会社　FAX　03-3505-8989</div>
         </div>
       `;
     }
