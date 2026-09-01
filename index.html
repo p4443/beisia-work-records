@@ -1177,9 +1177,31 @@
 
     function buildPrintArea(month) {
       const [yyyy, mm] = month.split('-');
-      const monthRecords = recordsData
-        .filter(r => r.date && r.date.startsWith(month))
-        .sort((a, b) => a.date.localeCompare(b.date));
+      const year = parseInt(yyyy);
+      const monthNum = parseInt(mm);
+      const daysInMonth = new Date(year, monthNum, 0).getDate();
+      const dows = ['日', '月', '火', '水', '木', '金', '土'];
+
+      const recordMap = new Map();
+      recordsData.forEach(r => { if (r.date) recordMap.set(r.date, r); });
+
+      // その月の全日付を対象にし、記録が無い日も空欄として表示する
+      const monthRecords = [];
+      for (let day = 1; day <= daysInMonth; day++) {
+        const dd = day < 10 ? `0${day}` : `${day}`;
+        const dateStr = `${yyyy}-${mm}-${dd}`;
+        const existing = recordMap.get(dateStr);
+        if (existing) {
+          monthRecords.push(existing);
+        } else {
+          monthRecords.push({
+            date: dateStr,
+            dow: dows[new Date(year, monthNum - 1, day).getDay()],
+            startTime: '', dep10Time: '', endTime: '',
+            totalOrders: '0', totalKm: '0'
+          });
+        }
+      }
 
       let totalOrders = 0;
       let totalKm = 0;
