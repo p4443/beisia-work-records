@@ -667,6 +667,30 @@
         recordsData = JSON.parse(JSON.stringify(INITIAL_DATA));
         saveToStorage();
       }
+      dedupeRecordsByDate();
+    }
+
+    // 同じ日付の記録が複数存在する場合、データが多い方を残して統合する（過去の不具合データの救済）
+    function dedupeRecordsByDate() {
+      const map = new Map();
+      let hasDuplicate = false;
+      const score = rec => (parseInt(rec.totalOrders) || 0) + (parseInt(rec.totalKm) || 0);
+
+      recordsData.forEach(r => {
+        if (!r.date) return;
+        const existing = map.get(r.date);
+        if (!existing) {
+          map.set(r.date, r);
+          return;
+        }
+        hasDuplicate = true;
+        map.set(r.date, score(r) >= score(existing) ? r : existing);
+      });
+
+      if (hasDuplicate) {
+        recordsData = Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date));
+        saveToStorage();
+      }
     }
 
     function saveToStorage() {
@@ -971,8 +995,18 @@
           recordsData[idx] = newRecord;
         }
       } else {
-        recordsData.push(newRecord);
-        recordsData.sort((a, b) => a.date.localeCompare(b.date));
+        const existing = recordsData.find(r => r.date === dateVal);
+        if (existing) {
+          if (!confirm(`${dateVal} の記録は既に登録されています。上書きしますか？`)) {
+            return;
+          }
+          newRecord.id = existing.id;
+          const idx = recordsData.findIndex(r => r.id === existing.id);
+          recordsData[idx] = newRecord;
+        } else {
+          recordsData.push(newRecord);
+          recordsData.sort((a, b) => a.date.localeCompare(b.date));
+        }
       }
 
       saveToStorage();
