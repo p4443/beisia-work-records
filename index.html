@@ -50,6 +50,24 @@
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
     }
+    #printArea {
+      display: none;
+    }
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #printArea, #printArea * {
+        visibility: visible;
+      }
+      #printArea.print-active {
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
@@ -66,7 +84,7 @@
       </div>
       <form onsubmit="verifyPIN(event)" class="space-y-4">
         <div>
-          <input type="password" id="pinInput" placeholder="PINコードを入力" pattern="[0-9]*" inputmode="numeric" autocomplete="new-password" required class="w-full text-center tracking-widest text-xl sm:text-2xl font-bold py-3 px-4 border border-slate-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          <input type="password" id="pinInput" placeholder="PINコードを入力" pattern="[0-9]*" inputmode="numeric" autocomplete="new-password" required class="w-full text-center tracking-widest text-base sm:text-lg font-bold py-3 px-4 border border-slate-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
           <p id="pinError" class="text-xs text-red-500 mt-2 font-medium hidden">PINコードが正しくありません</p>
         </div>
         <button id="authSubmit" type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-lg sm:rounded-xl transition shadow-lg">
@@ -96,6 +114,10 @@
         <button onclick="exportJSON()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center space-x-1 shadow-sm">
           <i class="fa-solid fa-download"></i>
           <span class="hidden sm:inline">バックアップ</span>
+        </button>
+        <button onclick="openPrintModal()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center space-x-1 shadow-sm">
+          <i class="fa-solid fa-print"></i>
+          <span class="hidden sm:inline">印刷</span>
         </button>
         <label class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center space-x-1 cursor-pointer shadow-sm">
           <i class="fa-solid fa-upload"></i>
@@ -201,6 +223,7 @@
               <th class="py-3 px-3 font-semibold text-center w-24">日付</th>
               <th class="py-3 px-2 font-semibold text-center w-16">出勤</th>
               <th class="py-3 px-2 font-semibold text-center w-16">10時発</th>
+              <th class="py-3 px-2 font-semibold text-center w-20 leading-tight">業務終了<br>時間</th>
               <th class="py-3 px-2 font-semibold text-center border-l border-slate-700">10時便</th>
               <th class="py-3 px-2 font-semibold text-center">12時便</th>
               <th class="py-3 px-2 font-semibold text-center">14時便</th>
@@ -208,7 +231,7 @@
               <th class="py-3 px-2 font-semibold text-center">18時便</th>
               <th class="py-3 px-2 font-semibold text-center bg-emerald-900 text-emerald-100">合計件数</th>
               <th class="py-3 px-2 font-semibold text-center bg-emerald-900 text-emerald-100">総走行距離</th>
-              <th class="py-3 px-3 font-semibold text-left">特記事項・備考</th>
+              <th class="py-3 px-3 font-semibold text-left w-40 sm:w-56">特記事項・備考</th>
               <th class="py-3 px-3 font-semibold text-center w-20">操作</th>
             </tr>
           </thead>
@@ -244,18 +267,22 @@
         <input type="hidden" id="editId">
 
         <!-- Basic Info -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div class="col-span-2 sm:col-span-1">
             <label class="block text-xs font-bold text-slate-700 mb-1">日付 <span class="text-red-500">*</span></label>
             <input type="date" id="formDate" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">出勤時間</label>
-            <input type="time" id="formStartTime" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+            <input type="time" id="formStartTime" oninput="updateSummaryTotals()" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">10時便出発時間</label>
             <input type="time" id="formDep10Time" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">業務終了時間</label>
+            <input type="time" id="formEndTime" oninput="updateSummaryTotals()" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
           </div>
         </div>
 
@@ -312,15 +339,21 @@
         </div>
 
         <!-- Dynamic Summary -->
-        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex items-center justify-around">
-          <div class="text-center">
-            <span class="text-xs text-slate-500 font-medium">1日合計件数</span>
-            <p class="text-xl font-bold text-emerald-800" id="calcTotalOrders">0 件</p>
+        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 grid grid-cols-3 divide-x divide-emerald-200">
+          <div class="text-center px-2">
+            <i class="fa-solid fa-box text-emerald-600 mb-1"></i>
+            <p class="text-xs text-slate-500 font-medium">1日合計件数</p>
+            <p class="text-lg sm:text-xl font-bold text-emerald-800" id="calcTotalOrders">0 件</p>
           </div>
-          <div class="w-px h-8 bg-emerald-200"></div>
-          <div class="text-center">
-            <span class="text-xs text-slate-500 font-medium">1日合計走行距離</span>
-            <p class="text-xl font-bold text-emerald-800" id="calcTotalKm">0 km</p>
+          <div class="text-center px-2">
+            <i class="fa-solid fa-route text-emerald-600 mb-1"></i>
+            <p class="text-xs text-slate-500 font-medium">1日合計走行距離</p>
+            <p class="text-lg sm:text-xl font-bold text-emerald-800" id="calcTotalKm">0 km</p>
+          </div>
+          <div class="text-center px-2">
+            <i class="fa-solid fa-clock text-emerald-600 mb-1"></i>
+            <p class="text-xs text-slate-500 font-medium">拘束時間</p>
+            <p class="text-lg sm:text-xl font-bold text-emerald-800" id="calcWorkDuration">-</p>
           </div>
         </div>
 
@@ -388,6 +421,36 @@
     </div>
   </div>
 
+  <!-- Modal for Print Month Selection -->
+  <div id="printModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full">
+      <div class="px-6 py-4 bg-emerald-800 text-white rounded-t-2xl flex items-center justify-between">
+        <h3 class="font-bold text-lg flex items-center space-x-2">
+          <i class="fa-solid fa-print"></i>
+          <span>印刷する月を選択</span>
+        </h3>
+        <button onclick="closePrintModal()" class="text-white/80 hover:text-white p-1" title="閉じる">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <form onsubmit="executePrint(event)" class="p-6 space-y-5">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">対象月</label>
+          <select id="printMonthSelect" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 bg-white">
+            <!-- JS dynamically populates months -->
+          </select>
+        </div>
+        <div class="flex justify-end gap-3">
+          <button type="button" onclick="closePrintModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 hover:bg-slate-100">キャンセル</button>
+          <button type="submit" class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-medium rounded-lg text-sm">印刷する</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Print-only Area -->
+  <div id="printArea" class="hidden"></div>
+
   <!-- Application Logic -->
   <script>
     // 2026年9月スタート用の空データ枠を生成
@@ -407,6 +470,7 @@
           note: '',
           startTime: '',
           dep10Time: '',
+          endTime: '',
           totalOrders: '0',
           totalKm: '0',
           b10: { count: '', startKm: '', endKm: '', dist: '0' },
@@ -678,7 +742,7 @@
       if (filtered.length === 0) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="12" class="py-8 text-center text-slate-400">
+            <td colspan="13" class="py-8 text-center text-slate-400">
               <i class="fa-solid fa-folder-open text-3xl mb-2"></i>
               <p class="text-sm">該当する記録が見つかりません</p>
             </td>
@@ -715,6 +779,7 @@
           </td>
           <td class="py-3 px-2 text-center text-slate-700 font-medium">${r.startTime || '-'}</td>
           <td class="py-3 px-2 text-center text-slate-700 font-medium">${r.dep10Time || '-'}</td>
+          <td class="py-3 px-2 text-center text-slate-700 font-medium">${r.endTime || '-'}</td>
           <td class="py-3 px-2 text-center text-xs border-l border-slate-200">${formatSlot(r.b10, 'b10')}</td>
           <td class="py-3 px-2 text-center text-xs">${formatSlot(r.b12, 'b12')}</td>
           <td class="py-3 px-2 text-center text-xs">${formatSlot(r.b14, 'b14')}</td>
@@ -722,7 +787,9 @@
           <td class="py-3 px-2 text-center text-xs">${formatSlot(r.b18, 'b18')}</td>
           <td class="py-3 px-2 text-center font-bold text-emerald-700 bg-emerald-50/60">${r.totalOrders > 0 ? r.totalOrders + ' 件' : '-'}</td>
           <td class="py-3 px-2 text-center font-bold text-emerald-800 bg-emerald-50/60">${r.totalKm > 0 ? r.totalKm + ' km' : '-'}</td>
-          <td class="py-3 px-3 text-left text-xs text-slate-600 max-w-xs truncate" title="${r.note}">${r.note || '-'}</td>
+          <td class="py-3 px-3 text-left text-xs text-slate-600" title="${r.note}">
+            <div class="max-w-[180px] sm:max-w-xs truncate">${r.note || '-'}</div>
+          </td>
           <td class="py-3 px-3 text-center whitespace-nowrap">
             <button onclick="editRecord(${r.id})" class="text-emerald-700 hover:text-emerald-900 p-1.5 hover:bg-emerald-50 rounded transition" title="編集">
               <i class="fa-solid fa-pen-to-square"></i>
@@ -753,6 +820,7 @@
           document.getElementById('formDate').value = record.date;
           document.getElementById('formStartTime').value = record.startTime || '';
           document.getElementById('formDep10Time').value = record.dep10Time || '';
+          document.getElementById('formEndTime').value = record.endTime || '';
           document.getElementById('formNote').value = record.note || '';
 
           ['10', '12', '14', '16', '18'].forEach(slot => {
@@ -802,6 +870,21 @@
 
       document.getElementById('calcTotalOrders').innerText = `${totalOrders} 件`;
       document.getElementById('calcTotalKm').innerText = `${totalKm} km`;
+      document.getElementById('calcWorkDuration').innerText = calcWorkDuration();
+    }
+
+    function calcWorkDuration() {
+      const startVal = document.getElementById('formStartTime').value;
+      const endVal = document.getElementById('formEndTime').value;
+      if (!startVal || !endVal) return '-';
+
+      const [sh, sm] = startVal.split(':').map(Number);
+      const [eh, em] = endVal.split(':').map(Number);
+      let minutes = (eh * 60 + em) - (sh * 60 + sm);
+      if (minutes < 0) minutes += 24 * 60; // 日をまたぐ場合
+      const h = Math.floor(minutes / 60);
+      const m = minutes % 60;
+      return `${h}時間${m}分`;
     }
 
     function saveRecord(event) {
@@ -854,6 +937,7 @@
         note: document.getElementById('formNote').value.trim(),
         startTime: document.getElementById('formStartTime').value,
         dep10Time: document.getElementById('formDep10Time').value,
+        endTime: document.getElementById('formEndTime').value,
         totalOrders: totalOrders.toString(),
         totalKm: totalKm.toString(),
         ...slotsData
@@ -962,13 +1046,124 @@
       renderApp();
     }
 
+    // Print Feature
+    function openPrintModal() {
+      const sel = document.getElementById('printMonthSelect');
+      sel.innerHTML = '';
+
+      const months = new Set();
+      recordsData.forEach(r => {
+        if (r.date && r.date.length >= 7) months.add(r.date.substring(0, 7));
+      });
+      const sortedMonths = Array.from(months).sort().reverse();
+
+      sortedMonths.forEach(m => {
+        const [yyyy, mm] = m.split('-');
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.textContent = `${yyyy}年${mm}月`;
+        sel.appendChild(opt);
+      });
+
+      const currentMonth = document.getElementById('monthSelect')?.value;
+      if (currentMonth && currentMonth !== 'all' && sortedMonths.includes(currentMonth)) {
+        sel.value = currentMonth;
+      }
+
+      document.getElementById('printModal').classList.remove('hidden');
+    }
+
+    function closePrintModal() {
+      document.getElementById('printModal').classList.add('hidden');
+    }
+
+    function executePrint(event) {
+      event.preventDefault();
+      const month = document.getElementById('printMonthSelect').value;
+      if (!month) {
+        alert('印刷する月を選択してください。');
+        return;
+      }
+
+      buildPrintArea(month);
+      closePrintModal();
+
+      const area = document.getElementById('printArea');
+      area.classList.add('print-active');
+      window.print();
+      area.classList.remove('print-active');
+    }
+
+    function buildPrintArea(month) {
+      const [yyyy, mm] = month.split('-');
+      const monthRecords = recordsData
+        .filter(r => r.date && r.date.startsWith(month))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      let totalOrders = 0;
+      let totalKm = 0;
+      let workDays = 0;
+
+      const rows = monthRecords.map(r => {
+        const orders = parseInt(r.totalOrders) || 0;
+        const km = parseInt(r.totalKm) || 0;
+        const isWorked = orders > 0 || km > 0 || r.startTime !== '';
+        if (isWorked) {
+          workDays++;
+          totalOrders += orders;
+          totalKm += km;
+        }
+
+        const formatSlot = slot => (slot && slot.count) ? `${slot.count}件${slot.dist && slot.dist !== '0' ? `(${slot.dist}km)` : ''}` : '-';
+
+        return `
+          <tr>
+            <td>${r.date} (${r.dow || '-'})</td>
+            <td>${r.startTime || '-'}</td>
+            <td>${r.dep10Time || '-'}</td>
+            <td>${r.endTime || '-'}</td>
+            <td>${formatSlot(r.b10)}</td>
+            <td>${formatSlot(r.b12)}</td>
+            <td>${formatSlot(r.b14)}</td>
+            <td>${formatSlot(r.b16)}</td>
+            <td>${formatSlot(r.b18)}</td>
+            <td>${orders > 0 ? orders + '件' : '-'}</td>
+            <td>${km > 0 ? km + 'km' : '-'}</td>
+            <td>${r.note || '-'}</td>
+          </tr>
+        `;
+      }).join('');
+
+      const area = document.getElementById('printArea');
+      area.innerHTML = `
+        <style>
+          #printArea table { width: 100%; border-collapse: collapse; font-size: 10px; }
+          #printArea th, #printArea td { border: 1px solid #333; padding: 4px; text-align: center; }
+          #printArea h1 { font-size: 16px; margin-bottom: 4px; }
+          #printArea .print-summary { margin-bottom: 10px; font-size: 12px; }
+        </style>
+        <h1>${yyyy}年${mm}月 稼働記録表</h1>
+        <div class="print-summary">稼働日数: ${workDays}日 / 総配送件数: ${totalOrders}件 / 総走行距離: ${totalKm}km</div>
+        <table>
+          <thead>
+            <tr>
+              <th>日付</th><th>出勤</th><th>10時発</th><th>業務終了時間</th>
+              <th>10時便</th><th>12時便</th><th>14時便</th><th>16時便</th><th>18時便</th>
+              <th>合計件数</th><th>総走行距離</th><th>備考</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
     // CSV & JSON Export / Import / Reset
     function exportCSV() {
-      let csvContent = "\uFEFF日付,曜日,出勤時間,10時便出発時間,10便件数,10便発km,10便着km,10便走行km,12便件数,12便発km,12便着km,12便走行km,14便件数,14便発km,14便着km,14便走行km,16便件数,16便発km,16便着km,16便走行km,18便件数,18便発km,18便着km,18便走行km,合計件数,合計走行km,備考\n";
+      let csvContent = "\uFEFF日付,曜日,出勤時間,10時便出発時間,業務終了時間,10便件数,10便発km,10便着km,10便走行km,12便件数,12便発km,12便着km,12便走行km,14便件数,14便発km,14便着km,14便走行km,16便件数,16便発km,16便着km,16便走行km,18便件数,18便発km,18便着km,18便走行km,合計件数,合計走行km,備考\n";
 
       recordsData.forEach(r => {
         const row = [
-          r.date, r.dow, r.startTime, r.dep10Time,
+          r.date, r.dow, r.startTime, r.dep10Time, r.endTime,
           r.b10.count, r.b10.startKm, r.b10.endKm, r.b10.dist,
           r.b12.count, r.b12.startKm, r.b12.endKm, r.b12.dist,
           r.b14.count, r.b14.startKm, r.b14.endKm, r.b14.dist,
