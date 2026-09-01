@@ -453,6 +453,26 @@
 
   <!-- Application Logic -->
   <script>
+    // 日本時間（Asia/Tokyo）の現在日付・時刻を取得
+    function getCurrentJSTDate() {
+      const parts = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Tokyo', year: 'numeric', month: '2-digit', day: '2-digit'
+      }).formatToParts(new Date());
+      const y = parts.find(p => p.type === 'year').value;
+      const m = parts.find(p => p.type === 'month').value;
+      const d = parts.find(p => p.type === 'day').value;
+      return `${y}-${m}-${d}`;
+    }
+
+    function getCurrentJSTTime() {
+      const parts = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Tokyo', hour: '2-digit', minute: '2-digit', hour12: false
+      }).formatToParts(new Date());
+      const h = parts.find(p => p.type === 'hour').value;
+      const m = parts.find(p => p.type === 'minute').value;
+      return `${h}:${m}`;
+    }
+
     // 2026年9月スタート用の空データ枠を生成
     function createInitialSeptemberData() {
       const dows = ['日', '月', '火', '水', '木', '金', '土'];
@@ -832,8 +852,10 @@
         }
       } else {
         title.querySelector('span').innerText = '新規稼働記録の追加';
-        const today = new Date().toISOString().split('T')[0];
-        document.getElementById('formDate').value = today;
+        document.getElementById('formDate').value = getCurrentJSTDate();
+        document.getElementById('formStartTime').value = getCurrentJSTTime();
+        document.getElementById('formDep10Time').value = getCurrentJSTTime();
+        document.getElementById('formEndTime').value = getCurrentJSTTime();
       }
 
       ['10', '12', '14', '16', '18'].forEach(slot => calcDist(slot));
