@@ -1,4 +1,4 @@
-const CACHE_NAME = 'beisia-work-records-v2';
+const CACHE_NAME = 'beisia-work-records-v3';
 const APP_FILES = ['/', '/index.html', '/manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {

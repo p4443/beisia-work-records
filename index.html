@@ -55,21 +55,21 @@
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
   <!-- PIN Lock Overlay -->
-  <div id="authOverlay" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 max-w-sm w-full text-center space-y-6">
-      <div class="bg-emerald-100 text-emerald-800 w-16 h-16 rounded-full flex items-center justify-center mx-auto text-2xl shadow-inner">
+  <div id="authOverlay" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4 sm:p-6">
+    <div class="bg-white rounded-xl sm:rounded-2xl shadow-2xl p-5 sm:p-8 max-w-sm w-full text-center space-y-5 sm:space-y-6">
+      <div class="bg-emerald-100 text-emerald-800 w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto text-xl sm:text-2xl shadow-inner">
         <i class="fa-solid fa-lock"></i>
       </div>
       <div>
-        <h2 class="text-xl font-bold text-slate-800">ベイシア稼働記録</h2>
-        <p id="authMessage" class="text-xs text-slate-500 mt-1">セキュリティのためPINコードを入力してください</p>
+        <h2 class="text-lg sm:text-xl font-bold text-slate-800">ベイシア稼働記録</h2>
+        <p id="authMessage" class="text-xs leading-5 text-slate-500 mt-1">セキュリティのためPINコードを入力してください</p>
       </div>
       <form onsubmit="verifyPIN(event)" class="space-y-4">
         <div>
-          <input type="password" id="pinInput" placeholder="PINコードを入力" pattern="[0-9]*" inputmode="numeric" required class="w-full text-center tracking-widest text-2xl font-bold py-3 px-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+          <input type="password" id="pinInput" placeholder="PINコードを入力" pattern="[0-9]*" inputmode="numeric" autocomplete="new-password" required class="w-full text-center tracking-widest text-xl sm:text-2xl font-bold py-3 px-4 border border-slate-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
           <p id="pinError" class="text-xs text-red-500 mt-2 font-medium hidden">PINコードが正しくありません</p>
         </div>
-        <button id="authSubmit" type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-xl transition shadow-lg">
+        <button id="authSubmit" type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-lg sm:rounded-xl transition shadow-lg">
           ロック解除
         </button>
       </form>
@@ -1040,7 +1040,7 @@
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js');
+        navigator.serviceWorker.register('service-worker.js?v=3');
       });
     }
   </script>
