@@ -50,10 +50,52 @@
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
     }
+    /* 印刷プレビュー: A4を実寸(mm)で表示し、印刷結果と見た目を一致させる */
+    .print-paper-stage {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      padding: 24px 12px 40px;
+    }
+    .print-scale-box {
+      position: relative;
+    }
+    .print-paper-frame {
+      position: relative;
+      width: 210mm;
+      transform-origin: top left;
+    }
+    #printArea.print-paper {
+      box-sizing: border-box;
+      width: 210mm;
+      min-height: 297mm;
+      padding: 10mm 18mm;
+      background: #fff;
+      box-shadow: 0 12px 32px rgba(15, 23, 42, 0.35);
+    }
+    .page-end-marker {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 297mm;
+      border-top: 2px dashed #ef4444;
+      pointer-events: none;
+    }
+    .page-end-marker span {
+      position: absolute;
+      top: 2px;
+      left: 0;
+      font-size: 10px;
+      font-weight: 700;
+      color: #ef4444;
+      background: #fff;
+      padding: 1px 6px;
+      border-radius: 0 0 4px 0;
+    }
     @media print {
       @page {
         size: A4 portrait;
-        margin: 10mm;
+        margin: 10mm 18mm;
       }
       html, body {
         height: 100%;
@@ -70,42 +112,26 @@
       #printPreviewModal .preview-chrome {
         display: none !important;
       }
-      #printPreviewModal .preview-card {
-        box-shadow: none !important;
-        max-height: none !important;
-        max-width: none !important;
-        overflow: visible !important;
-        border-radius: 0 !important;
-      }
-      /* A4用紙1枚に収まるようコンパクト化し、ページ分割を防ぐ */
-      #printArea {
+      #printPreviewModal .print-paper-stage {
+        display: block !important;
         padding: 0 !important;
       }
-      #printArea .print-header h1 {
-        font-size: 18px !important;
+      #printPreviewModal .print-scale-box {
+        width: auto !important;
+        height: auto !important;
       }
-      #printArea .print-header .blank-line {
-        font-size: 11px !important;
-        margin-top: 4px !important;
+      #printPreviewModal .print-paper-frame {
+        width: auto !important;
+        transform: none !important;
       }
-      #printArea .logo {
-        font-size: 13px !important;
+      #printPreviewModal .page-end-marker {
+        display: none !important;
       }
-      #printArea .logo .brand-sub {
-        font-size: 9px !important;
-      }
-      #printArea .record-table {
-        font-size: 9px !important;
-      }
-      #printArea .record-table th, #printArea .record-table td {
-        padding: 2px 3px !important;
-      }
-      #printArea .totals-table th, #printArea .totals-table td {
-        padding: 3px 8px !important;
-        font-size: 10px !important;
-      }
-      #printArea .footer-right {
-        font-size: 10px !important;
+      #printArea.print-paper {
+        width: auto !important;
+        min-height: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
       }
       #printArea table, #printArea tr {
         page-break-inside: avoid;
@@ -491,24 +517,34 @@
   </div>
 
   <!-- Modal for Print Preview -->
-  <div id="printPreviewModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="preview-card bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar">
-      <div class="preview-chrome px-6 py-4 bg-emerald-800 text-white rounded-t-2xl flex items-center justify-between sticky top-0 z-10">
-        <h3 class="font-bold text-lg flex items-center space-x-2">
-          <i class="fa-solid fa-eye"></i>
-          <span>印刷プレビュー</span>
-        </h3>
-        <div class="flex items-center gap-2">
-          <button onclick="window.print()" class="bg-white text-emerald-800 px-4 py-1.5 rounded-lg text-sm font-medium hover:bg-emerald-50 transition flex items-center gap-1.5">
-            <i class="fa-solid fa-print"></i>
-            <span>印刷する</span>
-          </button>
-          <button onclick="closePrintPreview()" class="text-white/80 hover:text-white p-1" title="閉じる">
-            <i class="fa-solid fa-xmark text-xl"></i>
-          </button>
+  <div id="printPreviewModal" class="fixed inset-0 bg-slate-700/80 backdrop-blur-sm z-50 flex flex-col items-center p-0 sm:p-6 hidden overflow-y-auto custom-scrollbar">
+    <div class="preview-chrome w-full sm:max-w-3xl sticky top-0 z-10 bg-slate-900/95 backdrop-blur px-4 sm:px-6 py-3 flex items-center justify-between text-white shadow-lg sm:rounded-t-xl">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+          <i class="fa-solid fa-file-lines"></i>
+        </span>
+        <div class="min-w-0">
+          <h3 class="font-bold text-sm leading-tight truncate">印刷プレビュー</h3>
+          <p class="text-[11px] text-slate-400 leading-tight">A4・縦向き（実寸表示）</p>
         </div>
       </div>
-      <div id="printArea" class="p-10"></div>
+      <div class="flex items-center gap-2 shrink-0">
+        <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center gap-1.5 shadow">
+          <i class="fa-solid fa-print"></i>
+          <span class="hidden sm:inline">印刷する</span>
+        </button>
+        <button onclick="closePrintPreview()" class="text-slate-300 hover:text-white hover:bg-white/10 w-8 h-8 rounded-lg flex items-center justify-center transition" title="閉じる">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+    <div id="printPaperStage" class="print-paper-stage">
+      <div id="printScaleBox" class="print-scale-box">
+        <div id="printPaperFrame" class="print-paper-frame">
+          <div id="printArea" class="print-paper"></div>
+          <div class="page-end-marker" aria-hidden="true"><span>A4 1ページ分の終端</span></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1206,10 +1242,40 @@
       buildPrintArea(month);
       closePrintModal();
       document.getElementById('printPreviewModal').classList.remove('hidden');
+      updatePrintPreviewScale();
     }
 
     function closePrintPreview() {
       document.getElementById('printPreviewModal').classList.add('hidden');
+    }
+
+    // モバイル等の狭い画面でもA4実寸レイアウトを崩さず、縮小表示で全体を確認できるようにする
+    function updatePrintPreviewScale() {
+      const modal = document.getElementById('printPreviewModal');
+      const stage = document.getElementById('printPaperStage');
+      const box = document.getElementById('printScaleBox');
+      const frame = document.getElementById('printPaperFrame');
+      if (!modal || modal.classList.contains('hidden') || !stage || !box || !frame) return;
+
+      frame.style.transform = 'none';
+      const naturalWidth = frame.offsetWidth;
+      const naturalHeight = frame.offsetHeight;
+      const available = stage.clientWidth - 24;
+      const scale = Math.min(1, available / naturalWidth);
+
+      frame.style.transform = `scale(${scale})`;
+      box.style.width = `${naturalWidth * scale}px`;
+      box.style.height = `${naturalHeight * scale}px`;
+    }
+
+    window.addEventListener('resize', () => updatePrintPreviewScale());
+    window.addEventListener('orientationchange', () => updatePrintPreviewScale());
+
+    // 西暦を和暦(令和)表記に変換する（令和元年は2019年）
+    function toReiwa(year) {
+      const reiwaYear = year - 2018;
+      if (reiwaYear < 1) return `${year}年`;
+      return reiwaYear === 1 ? '令和元年' : `令和${reiwaYear}年`;
     }
 
     function buildPrintArea(month) {
@@ -1275,8 +1341,8 @@
       const area = document.getElementById('printArea');
       area.innerHTML = `
         <style>
-          #printArea table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
-          #printArea th, #printArea td { border: 1px solid #333; padding: 6px 4px; text-align: center; }
+          #printArea table { width: 100%; border-collapse: collapse; font-size: 10.6px; table-layout: fixed; }
+          #printArea th, #printArea td { border: 1px solid #333; padding: 4.7px 4.2px; text-align: center; }
           #printArea .record-table th:nth-child(1), #printArea .record-table td:nth-child(1) { width: 6%; }
           #printArea .record-table th:nth-child(2), #printArea .record-table td:nth-child(2) { width: 8%; }
           #printArea .record-table th:nth-child(3), #printArea .record-table td:nth-child(3),
@@ -1284,37 +1350,38 @@
           #printArea .record-table th:nth-child(5), #printArea .record-table td:nth-child(5) { width: 12%; }
           #printArea .record-table th:nth-child(6), #printArea .record-table td:nth-child(6),
           #printArea .record-table th:nth-child(7), #printArea .record-table td:nth-child(7) { width: 11%; }
-          #printArea .record-table th:nth-child(8), #printArea .record-table td:nth-child(8) { width: 28%; text-align: left; }
-          #printArea .print-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
-          #printArea .print-header h1 { font-size: 24px; margin: 0 0 8px 0; }
-          #printArea .logo { display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 16px; color: #ea580c; }
-          #printArea .logo .fa-house { color: #ea580c; }
-          #printArea .logo .brand-sub { display: block; font-size: 11px; color: #16a34a; font-weight: bold; }
-          #printArea .print-header .blank-line { font-size: 13px; margin-top: 8px; white-space: nowrap; }
-          #printArea .print-header-right { text-align: right; }
-          #printArea .print-footer { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 24px; font-size: 12px; flex-wrap: wrap; gap: 16px; }
-          #printArea .totals-table { width: auto; border-collapse: collapse; }
-          #printArea .totals-table th, #printArea .totals-table td { border: 1px solid #333; padding: 6px 12px; text-align: center; }
-          #printArea .footer-right { text-align: right; line-height: 1.6; }
-          @media screen and (max-width: 480px) {
-            #printArea .print-header { flex-direction: column; }
-            #printArea .print-header-right { text-align: left; }
-            #printArea .print-footer { flex-direction: column; align-items: flex-start; }
-            #printArea .footer-right { text-align: left; }
+          #printArea .record-table th:nth-child(8), #printArea .record-table td:nth-child(8) {
+            width: 28%; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
           }
+          #printArea .print-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; flex-wrap: wrap; gap: 12px; }
+          #printArea .print-header-left { display: flex; flex-direction: column; }
+          #printArea .title-row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+          #printArea .print-header h1 { font-size: 19px; margin: 0; }
+          #printArea .period-label { font-size: 19px; font-weight: 700; color: #166534; white-space: nowrap; }
+          #printArea .logo { display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 13.6px; color: #ea580c; margin-top: 8px; }
+          #printArea .logo .fa-house { color: #ea580c; }
+          #printArea .logo .brand-sub { display: block; font-size: 9.6px; color: #16a34a; font-weight: bold; }
+          #printArea .print-header .blank-line { font-size: 11.6px; margin-top: 5px; white-space: nowrap; }
+          #printArea .print-header-right { text-align: right; }
+          #printArea .print-footer { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 24px; font-size: 10.6px; flex-wrap: wrap; gap: 16px; }
+          #printArea .totals-table { width: auto; border-collapse: collapse; }
+          #printArea .totals-table th, #printArea .totals-table td { border: 1px solid #333; padding: 4.2px 9.2px; text-align: center; }
+          #printArea .footer-right { text-align: right; line-height: 1.6; }
         </style>
         <div class="print-header">
           <div class="print-header-left">
-            <h1>稼働月報</h1>
+            <div class="title-row">
+              <h1>稼働月報</h1>
+              <span class="period-label">${toReiwa(year)}${parseInt(mm)}月分</span>
+            </div>
             <div class="logo">
               <i class="fa-solid fa-house"></i>
               <span>Beisia<span class="brand-sub">ネットスーパー</span></span>
             </div>
           </div>
           <div class="print-header-right">
-            <div class="blank-line">${yyyy}年　${mm}月</div>
             <div class="blank-line">氏名：＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿</div>
-            <div class="blank-line">店：＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿</div>
+            <div class="blank-line">店名：＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿＿</div>
           </div>
         </div>
         <table class="record-table">
