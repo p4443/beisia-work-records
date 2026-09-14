@@ -1,5 +1,12 @@
-const CACHE_NAME = 'beisia-work-records-v7';
-const APP_FILES = ['./', './index.html', './manifest.webmanifest'];
+const CACHE_NAME = 'beisia-work-records-v9';
+const APP_FILES = [
+  './',
+  './index.html',
+  './manifest.webmanifest',
+  './terms.html',
+  './privacy.html',
+  './legal-notice.html'
+];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_FILES)));
