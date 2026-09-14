@@ -1,7 +1,8 @@
 {
   "name": "ベイシア稼働記録",
   "short_name": "稼働記録",
-  "start_url": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#f1f5f9",
   "theme_color": "#166534",
