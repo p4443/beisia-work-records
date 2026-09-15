@@ -1,4 +1,4 @@
-const CACHE_NAME = 'beisia-work-records-v12';
+const CACHE_NAME = 'beisia-work-records-v13';
 const APP_FILES = [
   './',
   './index.html',

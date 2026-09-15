@@ -15,7 +15,7 @@
   <header class="header"><div class="header-inner"><div class="brand">自在稼働記録</div><a class="back" href="./">アプリへ戻る</a></div></header>
   <main>
     <section id="setupPanel" class="panel" hidden><h1>クラウド設定が必要です</h1><p class="lead">Supabaseの接続先を設定すると、購入ライセンスと会社ユーザー管理を利用できます。</p></section>
-    <section id="loginPanel" class="panel" hidden><h1>購入者アカウント</h1><p class="lead">購入時または会社から招待されたメールアドレスを入力してください。</p><form id="loginForm" class="fields"><input id="loginEmail" type="email" autocomplete="email" required placeholder="メールアドレス"><button type="submit">ログインリンクを送信</button></form></section>
+    <section id="loginPanel" class="panel" hidden><h1>購入者アカウント</h1><p class="lead">購入時または会社から招待されたメールアドレスを入力してください。未購入の方は<a href="purchase.html">購入案内</a>をご確認ください。</p><form id="loginForm" class="fields"><input id="loginEmail" type="email" autocomplete="email" required placeholder="メールアドレス"><button type="submit">ログインリンクを送信</button></form></section>
     <section id="accountPanel" class="panel" hidden><h1>アカウント</h1><div class="summary"><div><small>メールアドレス</small><strong id="accountEmail"></strong></div><div><small>利用プラン</small><strong id="accountPlan"></strong></div></div><section id="companyPanel" hidden><div class="section-head"><h2 id="companyName">会社ユーザー</h2><strong id="memberCount">0 / 20名</strong></div><form id="inviteForm" class="fields"><input id="inviteEmail" type="email" required placeholder="招待するメールアドレス"><button type="submit">利用者を招待</button></form><ul id="memberList" class="member-list"></ul></section><div class="actions"><button id="logoutButton" type="button" class="secondary">ログアウト</button></div></section>
     <p id="accountMessage" class="message" aria-live="polite"></p>
   </main>

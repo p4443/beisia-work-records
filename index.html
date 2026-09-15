@@ -207,10 +207,6 @@
         </div>
       </div>
       <div class="flex items-center justify-end w-full sm:w-auto space-x-2 sm:space-x-3">
-        <a href="purchase.html" class="bg-amber-400 hover:bg-amber-300 text-slate-900 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center space-x-1 shadow-sm" title="自在稼働記録を購入">
-          <i class="fa-solid fa-cart-shopping"></i>
-          <span class="hidden sm:inline">購入</span>
-        </a>
         <a href="account.html" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition" title="自在稼働記録アカウント">
           <i class="fa-solid fa-user-group"></i>
         </a>
@@ -375,7 +371,6 @@
     <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
       <div>&copy; 2026 <span id="appNameFooter">自在稼働記録</span>. All rights reserved.</div>
       <nav aria-label="法務情報" class="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1">
-        <a href="purchase.html" class="hover:text-emerald-700 underline underline-offset-2">購入案内</a>
         <a href="integration-guide.html" class="hover:text-emerald-700 underline underline-offset-2">連携マニュアル</a>
         <a href="account.html" class="hover:text-emerald-700 underline underline-offset-2">アカウント</a>
         <a href="terms.html" class="hover:text-emerald-700 underline underline-offset-2">利用規約</a>
@@ -872,8 +867,7 @@
     }
 
     function renderAppIdentity() {
-      const appName = appConfig.appName;
-      document.getElementById('appDocumentTitle').textContent = `${PRODUCT_NAME} | ${appName}`;
+      document.getElementById('appDocumentTitle').textContent = PRODUCT_NAME;
       document.getElementById('appNameAuth').textContent = PRODUCT_NAME;
       document.getElementById('appNameHeader').textContent = PRODUCT_NAME;
       document.getElementById('appNameFooter').textContent = PRODUCT_NAME;
