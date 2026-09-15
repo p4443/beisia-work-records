@@ -144,6 +144,7 @@
         box-sizing: border-box !important;
         width: 210mm !important;
         max-width: 210mm !important;
+        height: 297mm !important;
         min-height: 0 !important;
         padding: 10mm 18mm !important;
         box-shadow: none !important;
@@ -155,14 +156,14 @@
       }
       #printArea .record-table th,
       #printArea .record-table td {
-        padding-top: 4.5px !important;
-        padding-bottom: 4.5px !important;
+        padding-top: 3px !important;
+        padding-bottom: 3px !important;
       }
       #printArea .print-header {
-        margin-bottom: 14px !important;
+        margin-bottom: 12px !important;
       }
       #printArea .print-footer {
-        margin-top: 16px !important;
+        margin-top: 12px !important;
       }
       #printArea table, #printArea tr {
         page-break-inside: avoid;
@@ -2430,6 +2431,8 @@
       }).join('');
 
       const offDays = monthRecords.length - workDays;
+      const printTitle = `${appConfig.appName} 稼働月報`;
+      const printTitleFontSize = printTitle.length > 50 ? 8 : printTitle.length > 35 ? 11 : printTitle.length > 24 ? 13 : 16;
 
       const area = document.getElementById('printArea');
       area.innerHTML = `
@@ -2464,7 +2467,7 @@
         <div class="print-header">
           <div class="print-header-left">
             <div class="title-row">
-              <h1>${escapeHTML(appConfig.appName)} 稼働月報</h1>
+              <h1 style="font-size: ${printTitleFontSize}px">${escapeHTML(printTitle)}</h1>
               <span class="period-label">${toReiwa(year)}${parseInt(mm)}月分</span>
             </div>
           </div>
@@ -2488,7 +2491,6 @@
             <tr><td>出勤日数</td><td>${workDays}日</td></tr>
             <tr><td>休日日数</td><td>${offDays}日</td></tr>
           </table>
-          <div class="footer-right">※月末作業終了後、稼働月報をFAXして下さい！<br>愛商物流株式会社　FAX　03-3505-8989</div>
         </div>
       `;
     }
