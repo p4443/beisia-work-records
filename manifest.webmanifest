@@ -1,6 +1,6 @@
 {
-  "name": "ベイシア稼働記録",
-  "short_name": "稼働記録",
+  "name": "自在稼働記録",
+  "short_name": "自在稼働記録",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

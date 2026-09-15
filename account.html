@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#166534">
+  <title>アカウント | 自在稼働記録</title>
+  <style>
+    :root{--green:#166534;--green-light:#dcfce7;--ink:#1e293b;--muted:#64748b;--line:#cbd5e1;--paper:#fff;--canvas:#f1f5f9;--red:#b91c1c}*{box-sizing:border-box}body{margin:0;color:var(--ink);background:var(--canvas);font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;letter-spacing:0}.header{color:#fff;background:var(--green)}.header-inner,main{width:min(760px,calc(100% - 32px));margin:0 auto}.header-inner{min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{font-size:19px;font-weight:700}.back{color:#fff;font-size:13px}main{padding:28px 0 52px}.panel{padding:24px;background:var(--paper);border:1px solid var(--line);border-top:5px solid var(--green);border-radius:8px}h1{margin:0 0 8px;font-size:24px}h2{margin:26px 0 10px;font-size:17px}.lead,.meta{color:var(--muted);font-size:13px;line-height:1.7}.fields{display:flex;gap:8px;margin-top:18px}input{min-width:0;flex:1;padding:10px 12px;border:1px solid var(--line);border-radius:7px;font:inherit}button{padding:10px 14px;border:0;border-radius:7px;color:#fff;background:var(--green);font-weight:700;cursor:pointer}button:disabled{background:#94a3b8}.secondary{background:#475569}.message{min-height:22px;margin:14px 0 0;font-size:13px}.success{color:var(--green)}.error{color:var(--red)}.summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}.summary div{padding:13px;background:#f8fafc;border:1px solid var(--line);border-radius:7px}.summary small{display:block;color:var(--muted);margin-bottom:4px}.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.member-list{padding:0;margin:12px 0 0;list-style:none;border-top:1px solid var(--line)}.member-list li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}.member-list small{display:block;color:var(--muted);margin-top:3px}.remove-member{padding:6px 9px;color:var(--red);background:#fff;border:1px solid #fecaca;font-size:12px}.actions{display:flex;justify-content:flex-end;margin-top:22px}@media(max-width:560px){.panel{padding:20px}.fields{flex-direction:column}.summary{grid-template-columns:1fr}}
+  </style>
+  <script src="cloud-config.js"></script>
+  <script type="module" src="account.js"></script>
+</head>
+<body>
+  <header class="header"><div class="header-inner"><div class="brand">自在稼働記録</div><a class="back" href="./">アプリへ戻る</a></div></header>
+  <main>
+    <section id="setupPanel" class="panel" hidden><h1>クラウド設定が必要です</h1><p class="lead">Supabaseの接続先を設定すると、購入ライセンスと会社ユーザー管理を利用できます。</p></section>
+    <section id="loginPanel" class="panel" hidden><h1>購入者アカウント</h1><p class="lead">購入時または会社から招待されたメールアドレスを入力してください。</p><form id="loginForm" class="fields"><input id="loginEmail" type="email" autocomplete="email" required placeholder="メールアドレス"><button type="submit">ログインリンクを送信</button></form></section>
+    <section id="accountPanel" class="panel" hidden><h1>アカウント</h1><div class="summary"><div><small>メールアドレス</small><strong id="accountEmail"></strong></div><div><small>利用プラン</small><strong id="accountPlan"></strong></div></div><section id="companyPanel" hidden><div class="section-head"><h2 id="companyName">会社ユーザー</h2><strong id="memberCount">0 / 20名</strong></div><form id="inviteForm" class="fields"><input id="inviteEmail" type="email" required placeholder="招待するメールアドレス"><button type="submit">利用者を招待</button></form><ul id="memberList" class="member-list"></ul></section><div class="actions"><button id="logoutButton" type="button" class="secondary">ログアウト</button></div></section>
+    <p id="accountMessage" class="message" aria-live="polite"></p>
+  </main>
+</body>
+</html>

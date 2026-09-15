@@ -1,7 +1,13 @@
-const CACHE_NAME = 'beisia-work-records-v9';
+const CACHE_NAME = 'beisia-work-records-v12';
 const APP_FILES = [
   './',
   './index.html',
+  './account.html',
+  './account.js',
+  './access-control.js',
+  './cloud-config.js',
+  './purchase.html',
+  './integration-guide.html',
   './manifest.webmanifest',
   './terms.html',
   './privacy.html',

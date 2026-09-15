@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#166534">
+  <title>購入案内 | 自在稼働記録</title>
+  <style>
+    :root{--green:#166534;--blue:#1d4ed8;--ink:#172033;--muted:#64748b;--line:#cbd5e1;--paper:#fff}*{box-sizing:border-box}body{margin:0;color:var(--ink);background:linear-gradient(180deg,#e8f5ec 0,#f8fafc 340px);font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;letter-spacing:0}.header{color:#fff;background:var(--green)}.header-inner,main{width:min(960px,calc(100% - 32px));margin:0 auto}.header-inner{min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{font-size:19px;font-weight:700}.back{color:#fff;font-size:13px}main{padding:34px 0 52px}.intro{text-align:center;margin-bottom:28px}.intro h1{margin:0;font-size:30px}.intro p{margin:9px auto 0;max-width:620px;color:var(--muted);font-size:14px;line-height:1.8}.plans{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.plan{display:flex;flex-direction:column;padding:24px;background:var(--paper);border:1px solid var(--line);border-top:5px solid var(--green);border-radius:8px;box-shadow:0 12px 28px rgba(15,23,42,.08)}.plan-company{border-top-color:var(--blue)}.label{font-size:12px;font-weight:700;color:var(--green)}.plan-company .label{color:var(--blue)}.plan h2{margin:6px 0 0;font-size:22px}.price{margin:16px 0 4px;font-size:36px;font-weight:700}.price small{font-size:13px;font-weight:400;color:var(--muted)}.once{margin:0 0 18px;color:var(--muted);font-size:12px}.features{flex:1;margin:0 0 24px;padding-left:20px;font-size:14px;line-height:2}.buy{display:block;padding:12px 16px;border-radius:7px;color:#fff;background:var(--green);font-weight:700;text-align:center;text-decoration:none}.plan-company .buy{background:var(--blue)}.buy:hover{filter:brightness(.92)}.notice{margin-top:22px;padding:18px 20px;background:var(--paper);border:1px solid var(--line);border-radius:8px;font-size:13px;line-height:1.8}.notice h2{margin:0 0 8px;font-size:16px}.notice p{margin:0;color:var(--muted)}.links{margin-top:18px;text-align:center;font-size:13px}.links a{margin:0 8px;color:var(--green)}@media(max-width:680px){main{padding-top:24px}.intro h1{font-size:25px}.plans{grid-template-columns:1fr}.plan{padding:20px}.price{font-size:32px}}
+  </style>
+</head>
+<body>
+  <header class="header"><div class="header-inner"><div class="brand">自在稼働記録</div><a class="back" href="./">アプリへ戻る</a></div></header>
+  <main>
+    <section class="intro" aria-labelledby="purchaseTitle"><h1 id="purchaseTitle">利用プランを選択</h1><p>いずれも買い切り・消費税率10%の税込価格です。購入手続きはStripeの安全な決済画面で行います。</p></section>
+    <section class="plans" aria-label="料金プラン">
+      <article class="plan"><div class="label">個人で利用</div><h2>個人版</h2><div class="price">400円 <small>税込</small></div><p class="once">消費税率10%・内消費税36円／買い切り</p><ul class="features"><li>購入者本人1名で利用</li><li>最大10案件を管理</li><li>案件ごとの便設定・記録管理</li><li>点呼確認簿との任意連携</li></ul><a class="buy" href="https://buy.stripe.com/bJe3cv48Hcbu1rd4dT4gg03" target="_blank" rel="noopener noreferrer">個人版を購入</a></article>
+      <article class="plan plan-company"><div class="label">会社・事業者で利用</div><h2>会社版</h2><div class="price">8,000円 <small>税込</small></div><p class="once">消費税率10%・内消費税727円／買い切り</p><ul class="features"><li>管理者1名を含む合計20名まで</li><li>管理者による利用者招待・削除</li><li>各利用者が最大10案件を管理</li><li>点呼確認簿との任意連携</li></ul><a class="buy" href="https://buy.stripe.com/9B6aEXdJh6Ragm77q54gg04" target="_blank" rel="noopener noreferrer">会社版を購入</a></article>
+    </section>
+    <section class="notice" aria-labelledby="afterPurchaseTitle"><h2 id="afterPurchaseTitle">購入後について</h2><p>決済時のメールアドレスへアカウント案内を送信します。適格請求書または領収書をご希望の場合は、購入時のメールアドレス、宛名、購入プランを記載して <a href="mailto:zuomuj924@gmail.com?subject=%E8%87%AA%E5%9C%A8%E7%A8%BC%E5%83%8D%E8%A8%98%E9%8C%B2%20%E9%81%A9%E6%A0%BC%E8%AB%8B%E6%B1%82%E6%9B%B8%E3%83%BB%E9%A0%98%E5%8F%8E%E6%9B%B8%E7%99%BA%E8%A1%8C%E4%BE%9D%E9%A0%BC">メールでご依頼ください</a>。電子データで発行します。発行事業者は、なめがわブラス・ラボ（登録番号 T2810320517878）です。Stripeの決済完了メールも購入証明として保管してください。点呼確認簿との接続は任意で、自在稼働記録の購入は点呼確認簿の利用権を含みません。</p></section>
+    <nav class="links" aria-label="購入関連情報"><a href="account.html">アカウント</a><a href="integration-guide.html">連携マニュアル</a><a href="terms.html">利用規約</a><a href="privacy.html">プライバシーポリシー</a><a href="legal-notice.html">特定商取引法に基づく表記</a></nav>
+  </main>
+</body>
+</html>

@@ -3,12 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title id="appDocumentTitle">ベイシア・ネットスーパー 稼働記録管理システム</title>
+  <title id="appDocumentTitle">自在稼働記録</title>
   <meta name="theme-color" content="#166534">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="稼働記録">
+  <meta name="apple-mobile-web-app-title" content="自在稼働記録">
   <link rel="manifest" href="manifest.webmanifest">
+  <script src="cloud-config.js"></script>
+  <script type="module" src="access-control.js"></script>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome Icons -->
@@ -177,7 +179,7 @@
         <i class="fa-solid fa-lock"></i>
       </div>
       <div>
-        <h2 id="appNameAuth" class="text-lg sm:text-xl font-bold text-slate-800">ベイシア稼働記録</h2>
+        <h2 id="appNameAuth" class="text-lg sm:text-xl font-bold text-slate-800">自在稼働記録</h2>
         <p id="authMessage" class="text-xs leading-5 text-slate-500 mt-1">セキュリティのためPINコードを入力してください</p>
       </div>
       <form onsubmit="verifyPIN(event)" class="space-y-4">
@@ -200,11 +202,18 @@
           <i class="fa-solid font-bold fa-truck-fast"></i>
         </div>
         <div>
-          <h1 id="appNameHeader" class="font-bold text-lg leading-tight">ベイシア・ネットスーパー</h1>
-          <p class="text-xs text-emerald-200">稼働記録 & 配送メーター管理システム</p>
+          <h1 id="appNameHeader" class="font-bold text-lg leading-tight">自在稼働記録</h1>
+          <p class="text-xs text-emerald-200">案件別 稼働記録・配送メーター管理</p>
         </div>
       </div>
       <div class="flex items-center justify-end w-full sm:w-auto space-x-2 sm:space-x-3">
+        <a href="purchase.html" class="bg-amber-400 hover:bg-amber-300 text-slate-900 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition flex items-center space-x-1 shadow-sm" title="自在稼働記録を購入">
+          <i class="fa-solid fa-cart-shopping"></i>
+          <span class="hidden sm:inline">購入</span>
+        </a>
+        <a href="account.html" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition" title="自在稼働記録アカウント">
+          <i class="fa-solid fa-user-group"></i>
+        </a>
         <button onclick="exportCSV()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center space-x-1 shadow-sm">
           <i class="fa-solid fa-file-csv"></i>
           <span class="hidden sm:inline">CSV出力</span>
@@ -244,26 +253,30 @@
   <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
     <!-- Project Switcher -->
-    <div class="bg-white border border-slate-200 shadow-sm rounded-lg px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-      <div class="flex items-center gap-3 min-w-0">
-        <span class="w-9 h-9 shrink-0 bg-emerald-100 text-emerald-700 rounded-lg flex items-center justify-center">
-          <i class="fa-solid fa-briefcase"></i>
-        </span>
-        <div class="min-w-0">
-          <label for="projectSelect" class="block text-[11px] font-bold text-slate-500 mb-0.5">表示する案件</label>
-          <select id="projectSelect" onchange="switchProject(this.value)" class="w-full sm:w-72 border-0 bg-transparent p-0 text-sm font-bold text-slate-800 focus:ring-0 cursor-pointer"></select>
+    <section class="bg-white border border-slate-200 shadow-sm rounded-lg overflow-hidden" aria-labelledby="projectSwitcherTitle">
+      <div class="px-4 py-3 sm:px-5 sm:py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="w-10 h-10 shrink-0 bg-emerald-100 text-emerald-700 rounded-lg flex items-center justify-center">
+            <i class="fa-solid fa-briefcase"></i>
+          </span>
+          <div class="min-w-0">
+            <h2 id="projectSwitcherTitle" class="text-sm font-bold text-slate-800">案件を切り替える</h2>
+            <p class="text-xs text-slate-500 mt-0.5 truncate">選択中：<span id="activeProjectName" class="font-bold text-emerald-700"></span></p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span id="projectCount" class="text-xs font-medium text-slate-500 mr-auto sm:mr-1">1 / 10件</span>
+          <button id="addProjectButton" type="button" onclick="openProjectModal()" class="h-9 px-3 rounded-lg bg-emerald-700 hover:bg-emerald-800 disabled:bg-slate-300 text-white text-xs font-bold transition flex items-center gap-1.5" title="案件を追加">
+            <i class="fa-solid fa-plus"></i>
+            <span>案件を追加</span>
+          </button>
+          <button id="deleteProjectButton" type="button" onclick="deleteCurrentProject()" class="w-9 h-9 shrink-0 rounded-lg border border-red-200 hover:bg-red-50 disabled:border-slate-200 disabled:text-slate-300 text-red-700 transition" title="選択中の案件を削除" aria-label="選択中の案件を削除">
+            <i class="fa-solid fa-trash"></i>
+          </button>
         </div>
       </div>
-      <div class="flex items-center gap-2">
-        <span id="projectCount" class="text-xs text-slate-500 mr-1">1 / 10件</span>
-        <button id="addProjectButton" type="button" onclick="openProjectModal()" class="w-9 h-9 rounded-lg bg-emerald-700 hover:bg-emerald-800 disabled:bg-slate-300 text-white transition" title="案件を追加" aria-label="案件を追加">
-          <i class="fa-solid fa-plus"></i>
-        </button>
-        <button id="deleteProjectButton" type="button" onclick="deleteCurrentProject()" class="w-9 h-9 rounded-lg border border-red-200 hover:bg-red-50 disabled:border-slate-200 disabled:text-slate-300 text-red-700 transition" title="現在の案件を削除" aria-label="現在の案件を削除">
-          <i class="fa-solid fa-trash"></i>
-        </button>
-      </div>
-    </div>
+      <div id="projectTabs" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 p-3 sm:p-4" aria-label="案件一覧"></div>
+    </section>
 
     <!-- KPI Summary Cards -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -360,8 +373,11 @@
   <!-- Footer -->
   <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
     <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
-      <div>&copy; 2026 <span id="appNameFooter">ベイシア・ネットスーパー</span> 稼働記録管理システム. All rights reserved.</div>
+      <div>&copy; 2026 <span id="appNameFooter">自在稼働記録</span>. All rights reserved.</div>
       <nav aria-label="法務情報" class="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1">
+        <a href="purchase.html" class="hover:text-emerald-700 underline underline-offset-2">購入案内</a>
+        <a href="integration-guide.html" class="hover:text-emerald-700 underline underline-offset-2">連携マニュアル</a>
+        <a href="account.html" class="hover:text-emerald-700 underline underline-offset-2">アカウント</a>
         <a href="terms.html" class="hover:text-emerald-700 underline underline-offset-2">利用規約</a>
         <a href="privacy.html" class="hover:text-emerald-700 underline underline-offset-2">プライバシーポリシー</a>
         <a href="legal-notice.html" class="hover:text-emerald-700 underline underline-offset-2">特定商取引法に基づく表記</a>
@@ -630,9 +646,25 @@
           <input type="text" id="settingsAppName" maxlength="60" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
         </div>
         <div>
-          <label for="settingsSlotTimes" class="block text-xs font-bold text-slate-700 mb-1">便の時刻</label>
-          <input type="text" id="settingsSlotTimes" inputmode="numeric" required placeholder="例: 8,10,12,14" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
-          <p class="text-xs text-slate-500 mt-1">カンマ区切りで1〜10便。例: 8,10,12,14</p>
+          <div class="flex items-center justify-between gap-3 mb-2">
+            <span class="block text-xs font-bold text-slate-700">便の時刻</span>
+            <span id="settingsSlotCount" class="text-[11px] font-medium text-slate-500">5 / 10便</span>
+          </div>
+          <div id="settingsSlotList" class="grid grid-cols-2 sm:grid-cols-3 gap-2" aria-label="設定中の便"></div>
+          <div class="mt-3 flex items-end gap-2">
+            <div class="flex-1">
+              <label for="settingsNewSlotTime" class="block text-[11px] font-medium text-slate-600 mb-1">追加する時刻</label>
+              <div class="relative">
+                <input type="number" id="settingsNewSlotTime" min="0" max="99" inputmode="numeric" placeholder="例: 8" class="w-full pl-3 pr-10 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500">
+                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500">時</span>
+              </div>
+            </div>
+            <button id="addSlotTimeButton" type="button" onclick="addSettingsSlotTime()" class="h-9 px-3 rounded-lg bg-slate-700 hover:bg-slate-800 disabled:bg-slate-300 text-white text-xs font-bold transition flex items-center gap-1.5">
+              <i class="fa-solid fa-plus"></i>
+              <span>追加</span>
+            </button>
+          </div>
+          <p class="text-xs text-slate-500 mt-2">不要な便は削除できます。便は最低1件、最大10件です。</p>
         </div>
         <label class="flex items-start gap-3 p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50">
           <input type="checkbox" id="settingsUseTenkoApp" class="mt-0.5 w-4 h-4 accent-emerald-700">
@@ -722,6 +754,7 @@
     const ACTIVE_PROJECT_KEY = 'beisia_active_project_v1';
     const LEGACY_STORAGE_KEY = 'beisia_work_records_v2';
     const PROJECT_LIMIT = 10;
+    const PRODUCT_NAME = '自在稼働記録';
     const DEFAULT_APP_CONFIG = {
       appName: 'ベイシア・ネットスーパー',
       slotTimes: ['10', '12', '14', '16', '18'],
@@ -814,22 +847,36 @@
     }
 
     function renderProjectSwitcher() {
-      const select = document.getElementById('projectSelect');
-      select.innerHTML = projectsData.map(project => (
-        `<option value="${escapeHTML(project.id)}">${escapeHTML(project.appName)}</option>`
-      )).join('');
-      select.value = activeProjectId;
+      const activeProject = getActiveProject();
+      document.getElementById('activeProjectName').textContent = activeProject.appName;
+      document.getElementById('projectTabs').innerHTML = projectsData.map((project, index) => {
+        const isActive = project.id === activeProjectId;
+        const stateClasses = isActive
+          ? 'border-emerald-700 bg-emerald-50 text-emerald-900 ring-1 ring-emerald-700'
+          : 'border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/60';
+        return `<button type="button" data-project-id="${escapeHTML(project.id)}" onclick="switchProject(this.dataset.projectId)" class="min-w-0 h-14 px-3 rounded-lg border text-left transition focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1 ${stateClasses}" aria-pressed="${isActive}" title="${escapeHTML(project.appName)}に切り替え">
+          <span class="flex items-center gap-2 min-w-0">
+            <span class="w-6 h-6 shrink-0 rounded-md ${isActive ? 'bg-emerald-700 text-white' : 'bg-slate-100 text-slate-500'} text-[11px] font-bold flex items-center justify-center">${index + 1}</span>
+            <span class="min-w-0 flex-1">
+              <span class="block text-[10px] font-bold ${isActive ? 'text-emerald-700' : 'text-slate-400'}">${isActive ? '選択中' : '案件'}</span>
+              <span class="block text-xs font-bold truncate">${escapeHTML(project.appName)}</span>
+            </span>
+            ${isActive ? '<i class="fa-solid fa-circle-check text-emerald-700 shrink-0" aria-hidden="true"></i>' : ''}
+          </span>
+        </button>`;
+      }).join('');
       document.getElementById('projectCount').textContent = `${projectsData.length} / ${PROJECT_LIMIT}件`;
       document.getElementById('addProjectButton').disabled = projectsData.length >= PROJECT_LIMIT;
+      document.getElementById('addProjectButton').title = projectsData.length >= PROJECT_LIMIT ? '案件は10件までです' : '案件を追加';
       document.getElementById('deleteProjectButton').disabled = projectsData.length <= 1;
     }
 
     function renderAppIdentity() {
       const appName = appConfig.appName;
-      document.getElementById('appDocumentTitle').textContent = `${appName} 稼働記録管理システム`;
-      document.getElementById('appNameAuth').textContent = `${appName} 稼働記録`;
-      document.getElementById('appNameHeader').textContent = appName;
-      document.getElementById('appNameFooter').textContent = appName;
+      document.getElementById('appDocumentTitle').textContent = `${PRODUCT_NAME} | ${appName}`;
+      document.getElementById('appNameAuth').textContent = PRODUCT_NAME;
+      document.getElementById('appNameHeader').textContent = PRODUCT_NAME;
+      document.getElementById('appNameFooter').textContent = PRODUCT_NAME;
       document.getElementById('tenkoAppLink').classList.toggle('hidden', !appConfig.useTenkoApp);
       renderProjectSwitcher();
     }
@@ -993,7 +1040,10 @@
     function projectFromRemote(remote) {
       return {
         id: remote.id,
-        ...normalizeProjectConfig({ ...remote.config, appName: remote.name }),
+        ...normalizeProjectConfig({
+          appName: remote.name,
+          useTenkoApp: remote.config?.useTenkoApp
+        }),
         isPlaceholder: false
       };
     }
@@ -1024,6 +1074,38 @@
       const result = response.status === 204 ? null : await response.json().catch(() => ({}));
       if (response.status === 401) removeStorage(localStorage, TENKO_TOKEN_KEY);
       return { response, result };
+    }
+
+    let tenkoDispatchRequestId = 0;
+    let autoFilledDispatch = { driverName: '', vehicleNo: '' };
+
+    async function loadTenkoDispatch(date) {
+      const editId = document.getElementById('editId');
+      const driverInput = document.getElementById('formDriverName');
+      const vehicleInput = document.getElementById('formVehicleNo');
+      if (editId.value || !date || !readStorage(localStorage, TENKO_TOKEN_KEY)) return;
+
+      const requestId = ++tenkoDispatchRequestId;
+      const originalDriver = driverInput.value;
+      const originalVehicle = vehicleInput.value;
+      try {
+        const { response, result } = await tenkoWorkRecordRequest(
+          `/api/integration/work-projects/${encodeURIComponent(activeProjectId)}/dispatch?date=${encodeURIComponent(date)}`
+        );
+        if (!response.ok) return;
+        if (requestId !== tenkoDispatchRequestId || editId.value || document.getElementById('formDate').value !== date) return;
+
+        const dispatch = result.dispatch || {};
+        if (driverInput.value === originalDriver && (!driverInput.value || driverInput.value === autoFilledDispatch.driverName)) {
+          driverInput.value = dispatch.driverName || '';
+          autoFilledDispatch.driverName = driverInput.value;
+        }
+        if (vehicleInput.value === originalVehicle && (!vehicleInput.value || vehicleInput.value === autoFilledDispatch.vehicleNo)) {
+          vehicleInput.value = dispatch.vehicleNo || '';
+          autoFilledDispatch.vehicleNo = vehicleInput.value;
+        }
+      } catch (error) {
+      }
     }
 
     async function syncTenkoRecords() {
@@ -1073,7 +1155,7 @@
           method: 'PUT',
           body: JSON.stringify({
             name: activeProject.appName,
-            config: { slotTimes: activeProject.slotTimes, useTenkoApp: activeProject.useTenkoApp }
+            config: { useTenkoApp: activeProject.useTenkoApp }
           })
         });
         if (!projectResponse.response.ok) throw new Error(projectResponse.result.message || '案件を同期できませんでした');
@@ -1454,9 +1536,60 @@
       }
       closeSettingsAuthModal();
       document.getElementById('settingsAppName').value = appConfig.appName;
-      document.getElementById('settingsSlotTimes').value = appConfig.slotTimes.join(',');
+      renderSettingsSlotTimes(appConfig.slotTimes);
+      document.getElementById('settingsNewSlotTime').value = '';
       document.getElementById('settingsUseTenkoApp').checked = appConfig.useTenkoApp;
       document.getElementById('settingsModal').classList.remove('hidden');
+    }
+
+    function getSettingsSlotTimes() {
+      return Array.from(document.querySelectorAll('#settingsSlotList [data-slot-time]'))
+        .map(element => element.dataset.slotTime);
+    }
+
+    function renderSettingsSlotTimes(slotTimes) {
+      const isMinimum = slotTimes.length <= 1;
+      document.getElementById('settingsSlotList').innerHTML = slotTimes.map(time => `
+        <div data-slot-time="${escapeHTML(time)}" class="h-10 px-3 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-between gap-2">
+          <span class="text-sm font-bold text-slate-700">${escapeHTML(time)}時便</span>
+          <button type="button" onclick="removeSettingsSlotTime(this)" class="w-7 h-7 rounded-md text-red-600 hover:bg-red-50 disabled:text-slate-300 disabled:hover:bg-transparent transition" title="${escapeHTML(time)}時便を削除" aria-label="${escapeHTML(time)}時便を削除" ${isMinimum ? 'disabled' : ''}>
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+      `).join('');
+      document.getElementById('settingsSlotCount').textContent = `${slotTimes.length} / 10便`;
+      const addButton = document.getElementById('addSlotTimeButton');
+      addButton.disabled = slotTimes.length >= 10;
+      addButton.title = slotTimes.length >= 10 ? '便は10件までです' : '便を追加';
+    }
+
+    function addSettingsSlotTime() {
+      const input = document.getElementById('settingsNewSlotTime');
+      const value = input.value.trim();
+      const numericValue = Number(value);
+      if (!/^\d{1,2}$/.test(value) || !Number.isInteger(numericValue) || numericValue > 99) {
+        alert('時刻は0〜99の数字で入力してください。');
+        input.focus();
+        return;
+      }
+      const normalizedValue = String(numericValue);
+      const slotTimes = getSettingsSlotTimes();
+      if (slotTimes.includes(normalizedValue)) {
+        alert(`${normalizedValue}時便は既に設定されています。`);
+        input.select();
+        return;
+      }
+      if (slotTimes.length >= 10) return;
+      renderSettingsSlotTimes([...slotTimes, normalizedValue].sort((left, right) => Number(left) - Number(right)));
+      input.value = '';
+      input.focus();
+    }
+
+    function removeSettingsSlotTime(button) {
+      const slotTimes = getSettingsSlotTimes();
+      if (slotTimes.length <= 1) return;
+      const targetTime = button.closest('[data-slot-time]').dataset.slotTime;
+      renderSettingsSlotTimes(slotTimes.filter(time => time !== targetTime));
     }
 
     function closeSettingsModal() {
@@ -1545,8 +1678,7 @@
         return;
       }
 
-      const slotInput = document.getElementById('settingsSlotTimes').value;
-      const slotTimes = Array.from(new Set(slotInput.split(',').map(value => value.trim().replace(/\D/g, '')).filter(Boolean)));
+      const slotTimes = getSettingsSlotTimes();
       if (slotTimes.length < 1 || slotTimes.length > 10 || slotTimes.some(time => Number(time) > 99)) {
         alert('便の時刻は1〜10個、0〜99の数字で入力してください。');
         return;
@@ -1606,6 +1738,9 @@
       renderApp();
       refreshTenkoConnection().then(status => {
         if (status.connected) syncTenkoRecords();
+      });
+      document.getElementById('formDate').addEventListener('change', event => {
+        loadTenkoDispatch(event.target.value);
       });
     });
 
@@ -1896,6 +2031,8 @@
       const title = document.getElementById('modalTitle');
       const form = document.getElementById('recordForm');
 
+      tenkoDispatchRequestId += 1;
+      autoFilledDispatch = { driverName: '', vehicleNo: '' };
       form.reset();
       document.getElementById('editId').value = '';
 
@@ -1929,6 +2066,7 @@
 
       getSlotDefinitions().forEach(slot => calcDist(slot.time));
       modal.classList.remove('hidden');
+      if (!editId) loadTenkoDispatch(document.getElementById('formDate').value);
     }
 
     function closeModal() {

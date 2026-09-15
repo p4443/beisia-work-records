@@ -1,0 +1,7 @@
+project_id = "jizai-work-records"
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.invite-company-user]
+verify_jwt = true
