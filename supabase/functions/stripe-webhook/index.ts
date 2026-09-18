@@ -82,9 +82,14 @@ Deno.serve(async (request) => {
   if (request.method !== 'POST') return new Response('Method not allowed', { status: 405 });
   const signature = request.headers.get('stripe-signature');
   if (!signature) return new Response('Missing signature', { status: 400 });
+  const contentLength = Number(request.headers.get('content-length') ?? 0);
+  if (contentLength > 1_000_000) return new Response('Payload too large', { status: 413 });
 
   try {
     const payload = await request.text();
+    if (new TextEncoder().encode(payload).byteLength > 1_000_000) {
+      return new Response('Payload too large', { status: 413 });
+    }
     const event = await stripe.webhooks.constructEventAsync(
       payload,
       signature,
@@ -95,6 +100,7 @@ Deno.serve(async (request) => {
     }
     return Response.json({ received: true });
   } catch (error) {
-    return Response.json({ error: error instanceof Error ? error.message : 'Webhook error' }, { status: 400 });
+    console.error('stripe-webhook failed', error);
+    return Response.json({ error: 'Invalid webhook request' }, { status: 400 });
   }
 });

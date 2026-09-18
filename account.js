@@ -71,11 +71,28 @@ async function loadMembers(organizationId, isAdmin) {
   const profileMap = new Map(profiles.map(profile => [profile.id, profile]));
 
   document.getElementById('memberCount').textContent = `${memberships.length} / 20名`;
-  document.getElementById('memberList').innerHTML = memberships.map(item => {
+  const memberList = document.getElementById('memberList');
+  memberList.replaceChildren(...memberships.map(item => {
     const profile = profileMap.get(item.user_id) || {};
     const removable = isAdmin && item.role !== 'admin';
-    return `<li><span><strong>${escapeHTML(profile.display_name || profile.email || '利用者')}</strong><small>${item.role === 'admin' ? '管理者' : '利用者'}</small></span>${removable ? `<button type="button" data-user-id="${item.user_id}" class="remove-member">削除</button>` : ''}</li>`;
-  }).join('');
+    const listItem = document.createElement('li');
+    const details = document.createElement('span');
+    const name = document.createElement('strong');
+    const role = document.createElement('small');
+    name.textContent = profile.display_name || profile.email || '利用者';
+    role.textContent = item.role === 'admin' ? '管理者' : '利用者';
+    details.append(name, role);
+    listItem.append(details);
+    if (removable) {
+      const removeButton = document.createElement('button');
+      removeButton.type = 'button';
+      removeButton.dataset.userId = item.user_id;
+      removeButton.className = 'remove-member';
+      removeButton.textContent = '削除';
+      listItem.append(removeButton);
+    }
+    return listItem;
+  }));
 
   document.querySelectorAll('.remove-member').forEach(button => button.addEventListener('click', async () => {
     if (!confirm('この利用者を会社から削除しますか？')) return;
@@ -83,10 +100,6 @@ async function loadMembers(organizationId, isAdmin) {
     if (error) return showMessage(error.message, true);
     await loadMembers(organizationId, true);
   }));
-}
-
-function escapeHTML(value) {
-  return String(value ?? '').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
 }
 
 document.getElementById('loginForm').addEventListener('submit', async event => {

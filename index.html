@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" hidden>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -370,7 +370,7 @@
   <!-- Footer -->
   <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
     <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
-      <div>&copy; 2026 <span id="appNameFooter">自在稼働記録</span>. All rights reserved.</div>
+      <div>&copy; 2026 なめがわブラス・ラボ. All rights reserved.</div>
       <nav aria-label="法務情報" class="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1">
         <a href="integration-guide.html" class="hover:text-emerald-700 underline underline-offset-2">連携マニュアル</a>
         <a href="terms.html" class="hover:text-emerald-700 underline underline-offset-2">利用規約</a>
@@ -870,7 +870,6 @@
       document.getElementById('appDocumentTitle').textContent = PRODUCT_NAME;
       document.getElementById('appNameAuth').textContent = PRODUCT_NAME;
       document.getElementById('appNameHeader').textContent = PRODUCT_NAME;
-      document.getElementById('appNameFooter').textContent = PRODUCT_NAME;
       document.getElementById('tenkoAppLink').classList.toggle('hidden', !appConfig.useTenkoApp);
       renderProjectSwitcher();
     }
