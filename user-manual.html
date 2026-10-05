@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#166534">
+  <title>ユーザーマニュアル | 自在稼働記録</title>
+  <style>
+    :root{--green:#166534;--green-light:#dcfce7;--ink:#1e293b;--muted:#64748b;--line:#cbd5e1;--paper:#fff;--canvas:#f1f5f9}*{box-sizing:border-box}body{margin:0;color:var(--ink);background:var(--canvas);font-family:"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;letter-spacing:0}.header{color:#fff;background:var(--green)}.header-inner,main{width:min(880px,calc(100% - 32px));margin:0 auto}.header-inner{min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{font-size:19px;font-weight:700}.back{color:#fff;font-size:13px}main{padding:28px 0 52px}article{padding:28px;background:var(--paper);border:1px solid var(--line);border-top:5px solid var(--green)}h1{margin:0 0 8px;font-size:25px}h2{margin:30px 0 10px;padding-bottom:7px;color:var(--green);font-size:18px;border-bottom:1px solid var(--line)}h3{margin:20px 0 6px;font-size:15px}p,li{font-size:14px;line-height:1.85}.lead{margin:0;padding-bottom:20px;border-bottom:1px solid var(--line);color:var(--muted)}ol,ul{padding-left:24px}.toc{margin:20px 0;padding:16px 20px;background:#f8fafc;border:1px solid var(--line);border-radius:7px}.toc strong{font-size:14px}.toc ul{margin:8px 0 0}.toc a{color:var(--green)}.note{margin:14px 0;padding:13px 16px;background:var(--green-light);font-size:13px;line-height:1.8}.warning{background:#fff7ed;border-color:#fed7aa}.footer{margin-top:20px;text-align:center;font-size:12px;color:var(--muted)}.footer nav{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 16px;margin-top:8px}.footer a{color:var(--green)}@media(max-width:600px){main{padding-top:16px}article{padding:20px}h1{font-size:21px}}
+  </style>
+</head>
+<body>
+  <header class="header"><div class="header-inner"><div class="brand">自在稼働記録</div><a class="back" href="./">アプリへ戻る</a></div></header>
+  <main>
+    <article>
+      <h1>ユーザーマニュアル</h1>
+      <p class="lead">案件ごとの稼働記録を入力・集計し、月報の印刷やデータのバックアップを行う手順を説明します。</p>
+      <nav class="toc" aria-label="目次">
+        <strong>目次</strong>
+        <ul>
+          <li><a href="#start">利用開始・画面の見方</a></li>
+          <li><a href="#projects">案件の管理</a></li>
+          <li><a href="#records">稼働記録の入力・編集</a></li>
+          <li><a href="#search">表示・検索・集計</a></li>
+          <li><a href="#output">印刷・データ出力と復元</a></li>
+          <li><a href="#settings">設定・PINコード</a></li>
+          <li><a href="#account">アカウント・点呼確認簿連携</a></li>
+          <li><a href="#storage">データの保管について</a></li>
+        </ul>
+      </nav>
+
+      <h2 id="start">利用開始・画面の見方</h2>
+      <ol>
+        <li>初回は数字4桁以上のPINコードを登録します。次回以降はPINコードを入力してロックを解除します。</li>
+        <li>画面上部で案件を選び、中央の集計欄と記録一覧で選択中の案件の内容を確認します。</li>
+        <li>初期設定の便は10時・12時・14時・16時・18時です。便の構成は案件ごとに変更できます。</li>
+      </ol>
+      <p>画面上部の「CSV出力」は表計算ソフトで扱うデータ、「バックアップ」は後でアプリに復元するためのJSONファイル、「印刷」は月ごとの稼働月報を作成します。</p>
+
+      <h2 id="projects">案件の管理</h2>
+      <ul>
+        <li>「案件を追加」から案件名を入力して追加します。案件ごとに記録と便設定が分かれ、最大10件まで管理できます。</li>
+        <li>案件一覧のボタンで表示する案件を切り替えます。新しい案件には記録がありません。</li>
+        <li>案件名や便を変更するときは、歯車の「設定」を開きます。</li>
+        <li>案件の削除は、案件一覧のゴミ箱ボタンから行います。案件に含まれる全記録も削除され、元に戻せません。必要な記録は先にバックアップしてください。</li>
+      </ul>
+
+      <h2 id="records">稼働記録の入力・編集</h2>
+      <h3>1日分の記録を追加する</h3>
+      <ol>
+        <li>「新規記録の追加」を選びます。日付と時刻は初期値が入ります。必要に応じて変更してください。</li>
+        <li>運転者名、車両番号、出勤時間、最初の便の出発時間、業務終了時間、区分・特記事項を入力します。</li>
+        <li>各便について配送件数と出発・到着時のメーター値を入力します。件数・走行距離・拘束時間の合計は入力内容に応じて表示されます。</li>
+        <li>「保存する」を選びます。同じ日付の記録がすでにある場合は上書き確認が表示されます。</li>
+      </ol>
+      <p>走行距離は到着kmから出発kmを差し引いて計算します。到着値が出発値より小さいときは、メーターが1,000kmで一周したものとして計算します。出勤時刻と終了時刻が日をまたぐ場合も拘束時間を計算します。</p>
+      <h3>記録や便を編集する</h3>
+      <ul>
+        <li>一覧の編集ボタンから、日付単位の記録を編集します。保存すると一覧と集計が更新されます。</li>
+        <li>各便のセルにある追加・編集ボタンから、便だけを入力・変更できます。この画面では入力途中の内容も自動保存されます。</li>
+        <li>便や日単位の記録を削除するときは、該当する削除ボタンを選び、確認画面で確定します。</li>
+      </ul>
+
+      <h2 id="search">表示・検索・集計</h2>
+      <ul>
+        <li>月の選択で集計・一覧の対象月を切り替えます。</li>
+        <li>検索欄では日付、曜日、運転者名、車両番号、備考、出勤時間、合計件数・走行距離を検索できます。</li>
+        <li>表示区分は「稼働日のみ」「休日のみ」「全日程表示」から選べます。</li>
+        <li>集計カードには稼働日数、合計配送件数、合計走行距離、1日平均が表示されます。便別のカードには便ごとの件数と距離が表示されます。</li>
+      </ul>
+
+      <h2 id="output">印刷・データ出力と復元</h2>
+      <h3>月報を印刷する</h3>
+      <ol>
+        <li>「印刷」を選び、対象月を選択します。</li>
+        <li>プレビューで内容を確認し、「印刷する」を選びます。ブラウザーの印刷画面でプリンターまたはPDF保存を指定します。</li>
+      </ol>
+      <p>月報には対象月の全日分が並び、記録がない日は空欄で表示されます。画面の検索・稼働日フィルターは月報には適用されません。</p>
+      <h3>出力・復元する</h3>
+      <ul>
+        <li>「CSV出力」で記録をCSV形式で保存します。CSVは一覧・便別の入力内容を表計算ソフトなどで確認するためのファイルです。</li>
+        <li>「バックアップ」でJSON形式のバックアップを保存します。端末の変更やデータ復元に備え、定期的に保存してください。</li>
+        <li>復元する場合は「復元」からバックアップJSONを選び、確認メッセージを読んでから実行します。現在選択中の案件の記録はインポート内容で上書きされます。実行前に現在のデータもバックアップしてください。</li>
+      </ul>
+
+      <h2 id="settings">設定・PINコード</h2>
+      <ol>
+        <li>歯車ボタンを選び、現在のPINコードを入力します。</li>
+        <li>「案件設定」で案件名や便の時刻を変更できます。便は1〜10件まで設定でき、時刻は0〜99の数字です。</li>
+        <li>点呼確認簿を利用しない場合は「点呼確認簿を使用する」のチェックを外します。</li>
+        <li>「保存する」で変更を反映します。「PIN変更」から4桁以上の数字に変更できます。</li>
+      </ol>
+      <p class="note warning">「データ初期化」は選択中の案件の記録を初期状態に戻す操作です。元に戻せません。画面の指示を確認し、必要なデータを先にバックアップしてください。</p>
+
+      <h2 id="account">アカウント・点呼確認簿連携</h2>
+      <p>人型ボタンからアカウントページを開きます。購入者または会社から招待された方はメールアドレスでログインできます。会社版では管理者が利用者を招待・削除できます。</p>
+      <p>点呼確認簿との連携は任意です。ヘッダーの「アカウント接続」から、点呼確認簿の利用区分・メールアドレス・パスワードを入力します。接続中は案件と稼働記録が連携され、連携先の点呼情報から運転者名・車両番号が補完される場合があります。接続解除や同期の詳細は<a href="integration-guide.html">点呼確認簿 連携マニュアル</a>をご覧ください。</p>
+
+      <h2 id="storage">データの保管について</h2>
+      <p>稼働記録と案件設定は、ブラウザーの保存領域に保存されます。ブラウザーのデータ消去や端末故障などに備えて、JSONバックアップを別の安全な場所に保管してください。PINコードはアプリ画面のロック用であり、バックアップファイルを暗号化するものではありません。</p>
+    </article>
+    <footer class="footer">
+      <div>&copy; 2026 なめがわブラス・ラボ. All rights reserved.</div>
+      <nav aria-label="関連情報">
+        <a href="./">アプリへ戻る</a>
+        <a href="integration-guide.html">連携マニュアル</a>
+        <a href="terms.html">利用規約</a>
+        <a href="privacy.html">プライバシーポリシー</a>
+      </nav>
+    </footer>
+  </main>
+</body>
+</html>
