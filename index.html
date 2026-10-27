@@ -499,15 +499,15 @@
         <div class="grid grid-cols-3 gap-3">
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">件数</label>
-            <input type="number" id="slotCount" min="0" placeholder="件" oninput="handleSlotFieldInput()" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-center focus:ring-2 focus:ring-emerald-500">
+            <input type="number" id="slotCount" min="0" inputmode="numeric" enterkeyhint="next" placeholder="件" oninput="handleSlotFieldInput()" onkeydown="moveToNextSlotInput(event, '#slotForm')" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-center focus:ring-2 focus:ring-emerald-500">
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">出発km</label>
-            <input type="number" id="slotStartKm" min="0" placeholder="km" oninput="handleSlotFieldInput()" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-center focus:ring-2 focus:ring-emerald-500">
+            <input type="number" id="slotStartKm" min="0" inputmode="numeric" enterkeyhint="next" placeholder="km" oninput="handleSlotFieldInput()" onkeydown="moveToNextSlotInput(event, '#slotForm')" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-center focus:ring-2 focus:ring-emerald-500">
           </div>
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">到着km</label>
-            <input type="number" id="slotEndKm" min="0" placeholder="km" oninput="handleSlotFieldInput()" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-center focus:ring-2 focus:ring-emerald-500">
+            <input type="number" id="slotEndKm" min="0" inputmode="numeric" enterkeyhint="done" placeholder="km" oninput="handleSlotFieldInput()" onkeydown="moveToNextSlotInput(event, '#slotForm')" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-center focus:ring-2 focus:ring-emerald-500">
           </div>
         </div>
         <p class="text-xs text-slate-400">※ 入力途中の内容は自動的に保存されます。すべて入力していなくても閉じたデータは残ります。</p>
@@ -907,12 +907,12 @@
         <th class="py-3 px-3 font-semibold text-center whitespace-nowrap">操作</th>`;
 
       const fieldContainer = document.getElementById('slotFields');
-      fieldContainer.innerHTML = slots.map(slot => `
+      fieldContainer.innerHTML = slots.map((slot, slotIndex) => `
         <div class="bg-slate-50 p-3 rounded-lg border border-slate-200 grid grid-cols-4 gap-2 items-center">
           <span class="text-xs font-bold text-slate-700">${escapeHTML(slot.label)}</span>
-          <input type="number" id="formCount${slot.time}" placeholder="件数" min="0" oninput="calcDist('${slot.time}')" class="px-2 py-1.5 border rounded text-sm text-center">
-          <input type="number" id="formStartKm${slot.time}" placeholder="発km" min="0" oninput="calcDist('${slot.time}')" class="px-2 py-1.5 border rounded text-sm text-center">
-          <input type="number" id="formEndKm${slot.time}" placeholder="着km" min="0" oninput="calcDist('${slot.time}')" class="px-2 py-1.5 border rounded text-sm text-center">
+          <input type="number" id="formCount${slot.time}" placeholder="件数" min="0" inputmode="numeric" enterkeyhint="next" data-slot-input oninput="calcDist('${slot.time}')" onkeydown="moveToNextSlotInput(event, '#slotFields')" class="px-2 py-1.5 border rounded text-sm text-center">
+          <input type="number" id="formStartKm${slot.time}" placeholder="発km" min="0" inputmode="numeric" enterkeyhint="next" data-slot-input oninput="calcDist('${slot.time}')" onkeydown="moveToNextSlotInput(event, '#slotFields')" class="px-2 py-1.5 border rounded text-sm text-center">
+          <input type="number" id="formEndKm${slot.time}" placeholder="着km" min="0" inputmode="numeric" enterkeyhint="${slotIndex === slots.length - 1 ? 'done' : 'next'}" data-slot-input oninput="calcDist('${slot.time}')" onkeydown="moveToNextSlotInput(event, '#slotFields')" class="px-2 py-1.5 border rounded text-sm text-center">
         </div>`).join('');
 
       const select = document.getElementById('slotKey');
@@ -2042,11 +2042,11 @@
         const formatSlot = (slot, slotKey) => {
           const hasData = slot && Boolean(slot.count || slot.startKm || slot.endKm);
           if (!hasData) {
-            return `<button onclick="openSlotModal(${recordId}, '${slotKey}')" class="text-emerald-700 hover:text-emerald-900 font-medium" title="この便を追加"><i class="fa-solid fa-plus"></i></button>`;
+            return `<button type="button" onclick="openSlotModal(${recordId}, '${slotKey}')" class="touch-manipulation inline-flex h-10 min-w-[72px] px-3 items-center justify-center gap-1.5 text-sm font-bold text-white bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 active:scale-95 rounded-lg shadow-sm transition duration-75" title="この便を入力"><i class="fa-solid fa-plus"></i><span>入力</span></button>`;
           }
           const cnt = slot.count ? `${escapeHTML(slot.count)}件` : '';
           const dst = slot.dist && slot.dist !== '0' ? ` (${escapeHTML(slot.dist)}km)` : '';
-          return `<span>${cnt}${dst}</span><span class="inline-flex ml-1"><button onclick="openSlotModal(${recordId}, '${slotKey}')" class="text-emerald-700 hover:text-emerald-900 p-0.5" title="この便を編集"><i class="fa-solid fa-pen-to-square"></i></button><button onclick="deleteSlotRecord(${recordId}, '${slotKey}')" class="text-slate-400 hover:text-red-600 p-0.5" title="この便を削除"><i class="fa-solid fa-trash"></i></button></span>`;
+          return `<span class="block mb-1">${cnt}${dst}</span><span class="inline-flex items-center gap-3"><button type="button" onclick="openSlotModal(${recordId}, '${slotKey}')" class="touch-manipulation inline-flex h-10 min-w-[88px] px-3 items-center justify-center gap-1.5 text-sm font-bold text-white bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 active:scale-95 rounded-lg shadow-sm transition duration-75" title="この便の入力を変更"><i class="fa-solid fa-pen-to-square"></i><span>入力変更</span></button><button type="button" onclick="deleteSlotRecord(${recordId}, '${slotKey}')" class="text-slate-400 hover:text-red-600 p-0.5" title="この便を削除" aria-label="この便を削除"><i class="fa-solid fa-trash"></i></button></span>`;
         };
 
         const dowBadgeClass = r.dow === '土' ? 'text-blue-600 bg-blue-50 font-bold px-1.5 py-0.5 rounded'
@@ -2072,10 +2072,10 @@
             <div style="max-width:180px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHTML(r.note || '-')}</div>
           </td>
           <td class="py-3 px-3 text-center whitespace-nowrap">
-            <button onclick="editRecord(${recordId})" class="text-emerald-700 hover:text-emerald-900 p-1.5 hover:bg-emerald-50 rounded transition" title="編集">
-              <i class="fa-solid fa-pen-to-square"></i>
+            <button type="button" onclick="editRecord(${recordId})" class="touch-manipulation inline-flex h-10 min-w-[88px] px-3 items-center justify-center gap-1.5 text-sm font-bold text-white bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 active:scale-95 rounded-lg shadow-sm transition duration-75" title="入力を変更">
+              <i class="fa-solid fa-pen-to-square"></i><span>入力変更</span>
             </button>
-            <button onclick="deleteRecord(${recordId})" class="text-slate-400 hover:text-red-600 p-1.5 hover:bg-red-50 rounded transition ml-1" title="削除">
+            <button type="button" onclick="deleteRecord(${recordId})" class="text-slate-400 hover:text-red-600 p-1.5 hover:bg-red-50 rounded transition ml-3" title="削除" aria-label="稼働記録を削除">
               <i class="fa-solid fa-trash"></i>
             </button>
           </td>
@@ -2134,6 +2134,17 @@
 
     function closeModal() {
       document.getElementById('recordModal').classList.add('hidden');
+    }
+
+    function moveToNextSlotInput(event, containerSelector) {
+      if (event.key !== 'Enter') return;
+      const inputs = Array.from(document.querySelectorAll(`${containerSelector} input[type="number"]`))
+        .filter(input => !input.disabled && input.offsetParent !== null);
+      const currentIndex = inputs.indexOf(event.currentTarget);
+      if (currentIndex < 0 || currentIndex >= inputs.length - 1) return;
+      event.preventDefault();
+      inputs[currentIndex + 1].focus();
+      inputs[currentIndex + 1].select();
     }
 
     function calcDist(slot) {
