@@ -1,4 +1,4 @@
-const CACHE_NAME = 'beisia-work-records-v16';
+const CACHE_NAME = 'beisia-work-records-v17';
 const APP_FILES = [
   './',
   './index.html',
@@ -31,9 +31,23 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  const requestUrl = new URL(event.request.url);
+  if (requestUrl.origin !== self.location.origin) return;
+
+  const networkResponse = fetch(event.request).then((response) => {
+    if (response.ok) {
+      const responseToCache = response.clone();
+      caches.open(CACHE_NAME)
+        .then((cache) => cache.put(event.request, responseToCache))
+        .catch((error) => console.warn('キャッシュの更新に失敗しました。', error));
+    }
+    return response;
+  });
+
+  event.waitUntil(networkResponse.catch((error) => {
+    console.warn('バックグラウンド更新に失敗しました。', error);
+  }));
   event.respondWith(
-    fetch(event.request)
-      .then((response) => response)
-      .catch(() => caches.match(event.request))
+    caches.match(event.request).then((cachedResponse) => cachedResponse || networkResponse)
   );
 });
