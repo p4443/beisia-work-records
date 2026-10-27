@@ -226,6 +226,10 @@
           <i class="fa-solid fa-download"></i>
           <span class="hidden sm:inline">バックアップ</span>
         </button>
+        <button onclick="openMonthlyExportModal()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center space-x-1 shadow-sm">
+          <i class="fa-solid fa-file-zipper"></i>
+          <span class="hidden sm:inline">月別ZIP保存</span>
+        </button>
         <button onclick="openPrintModal()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center space-x-1 shadow-sm">
           <i class="fa-solid fa-print"></i>
           <span class="hidden sm:inline">印刷</span>
@@ -520,6 +524,47 @@
           <button type="submit" class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-medium rounded-lg text-sm">この便を保存</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Modal for Monthly Archive Export -->
+  <div id="monthlyExportModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full">
+      <div class="px-6 py-4 bg-emerald-800 text-white rounded-t-2xl flex items-center justify-between">
+        <h3 class="font-bold text-lg flex items-center space-x-2">
+          <i class="fa-solid fa-file-zipper"></i>
+          <span>月別データをZIP保存</span>
+        </h3>
+        <button type="button" onclick="closeMonthlyExportModal()" class="text-white/80 hover:text-white p-1" title="閉じる">
+          <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+      </div>
+      <form onsubmit="exportMonthlyArchive(event)" class="p-6 space-y-5">
+        <div>
+          <label for="monthlyExportSelect" class="block text-xs font-bold text-slate-700 mb-1">保存する内容月</label>
+          <input type="month" id="monthlyExportSelect" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 bg-white">
+        </div>
+        <p class="text-xs text-slate-500">選択した月の稼働記録をJSON・CSV・印刷用HTMLにまとめて保存します。印刷用HTMLはブラウザーで開いて印刷またはPDF保存できます。</p>
+        <label class="flex items-start gap-2 text-sm text-red-700">
+          <input type="checkbox" id="eraseAfterMonthlyExport" class="mt-0.5">
+          <span>ZIP保存後、この端末の選択月データを完全消去する</span>
+        </label>
+        <div class="flex justify-end gap-3">
+          <button type="button" onclick="closeMonthlyExportModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 hover:bg-slate-100">キャンセル</button>
+          <button type="submit" class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-medium rounded-lg text-sm">ZIPを保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="monthlyExportCompleteModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 space-y-4">
+      <h3 class="font-bold text-lg text-slate-800">ZIPを作成しました</h3>
+      <p class="text-sm text-slate-600">ZIPファイルが保存されたことを確認してください。削除すると選択月の記録はこの端末から復元できません。削除はこの端末内だけに行い、同期先のデータは削除しません。後で同期した場合、同期先の記録が再表示されることがあります。</p>
+      <div class="flex justify-end gap-3">
+        <button type="button" onclick="keepMonthlyRecords()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 hover:bg-slate-100">記録を残す</button>
+        <button type="button" onclick="confirmMonthlyDataDeletion()" class="px-4 py-2 bg-red-700 hover:bg-red-800 text-white rounded-lg text-sm font-medium">保存済みの月データを削除</button>
+      </div>
     </div>
   </div>
 
@@ -961,6 +1006,7 @@
     const TENKO_CONFLICTS_KEY = 'beisia_tenko_sync_conflicts_v1';
     const PIN_ITERATIONS = 150000;
     let recordsData = [];
+    let pendingMonthlyDeletionMonth = '';
     let tenkoSyncTimer = null;
     let tenkoSyncInProgress = false;
     let tenkoSyncPending = false;
@@ -1902,10 +1948,12 @@
     }
 
     function saveToStorage(shouldSync = true) {
-      if (writeStorage(localStorage, getProjectStorageKey(), JSON.stringify(recordsData))) {
+      const saved = writeStorage(localStorage, getProjectStorageKey(), JSON.stringify(recordsData));
+      if (saved) {
         recordsChannel?.postMessage({ type: 'records-updated', projectId: activeProjectId });
         if (shouldSync) scheduleTenkoSync();
       }
+      return saved;
     }
 
     function refreshRecordsFromStorage() {
@@ -2419,6 +2467,44 @@
       updatePrintPreviewScale();
     }
 
+    function openMonthlyExportModal() {
+      const monthSelect = document.getElementById('monthlyExportSelect');
+      const selectedMonth = document.getElementById('monthSelect')?.value;
+      monthSelect.value = selectedMonth && selectedMonth !== 'all'
+        ? selectedMonth
+        : getCurrentJSTDate().substring(0, 7);
+      document.getElementById('monthlyExportModal').classList.remove('hidden');
+    }
+
+    function closeMonthlyExportModal() {
+      document.getElementById('monthlyExportModal').classList.add('hidden');
+    }
+
+    function keepMonthlyRecords() {
+      pendingMonthlyDeletionMonth = '';
+      document.getElementById('monthlyExportCompleteModal').classList.add('hidden');
+    }
+
+    function confirmMonthlyDataDeletion() {
+      if (!pendingMonthlyDeletionMonth) return;
+      const month = pendingMonthlyDeletionMonth;
+      if (!confirm(`${month} の記録をこの端末から完全に削除します。削除した記録は復元できません。ZIPファイルの保存が完了していることを確認しましたか？`)) {
+        return;
+      }
+
+      const previousRecords = recordsData;
+      recordsData = recordsData.filter(record => !record.date?.startsWith(`${month}-`));
+      if (!saveToStorage(false)) {
+        recordsData = previousRecords;
+        alert('記録を削除できませんでした。ブラウザーの保存領域を確認してください。');
+        return;
+      }
+      populateMonthOptions();
+      renderApp();
+      pendingMonthlyDeletionMonth = '';
+      document.getElementById('monthlyExportCompleteModal').classList.add('hidden');
+    }
+
     function closePrintPreview() {
       document.getElementById('printPreviewModal').classList.add('hidden');
     }
@@ -2584,13 +2670,13 @@
       return String(value || '稼働記録').replace(/[\\/:*?"<>|]/g, '_').trim() || '稼働記録';
     }
 
-    function exportCSV() {
+    function buildCSVContent(records) {
       const headers = ['日付', '曜日', '運転者名', '車両番号', '出勤時間', `${getSlotDefinitions()[0].label}出発時間`, '業務終了時間'];
       getSlotDefinitions().forEach(slot => headers.push(`${slot.time}時便件数`, `${slot.time}時便発km`, `${slot.time}時便着km`, `${slot.time}時便走行km`));
       headers.push('合計件数', '合計走行km', '備考');
       let csvContent = `\uFEFF${headers.map(csvEscape).join(',')}\n`;
 
-      recordsData.forEach(r => {
+      records.forEach(r => {
         const baseValues = [r.date, r.dow, r.driverName, r.vehicleNo, r.startTime, r.dep10Time, r.endTime];
         const slotValues = getSlotDefinitions().flatMap(slot => {
           const data = r[slot.key] || {};
@@ -2599,14 +2685,174 @@
         const totalValues = [r.totalOrders, r.totalKm, r.note];
         csvContent += [...baseValues, ...slotValues, ...totalValues].map(csvEscape).join(',') + "\n";
       });
+      return csvContent;
+    }
 
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    function exportCSV() {
+      const blob = new Blob([buildCSVContent(recordsData)], { type: 'text/csv;charset=utf-8;' });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.setAttribute("download", `${getSafeFileName(appConfig.appName)}稼働記録_${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+    }
+
+    function getCRC32(bytes) {
+      let crc = 0xffffffff;
+      for (const byte of bytes) {
+        crc = (crc >>> 8) ^ CRC32_TABLE[(crc ^ byte) & 0xff];
+      }
+      return (crc ^ 0xffffffff) >>> 0;
+    }
+
+    const CRC32_TABLE = Array.from({ length: 256 }, (_, value) => {
+      let crc = value;
+      for (let bit = 0; bit < 8; bit++) {
+        crc = (crc & 1) ? (0xedb88320 ^ (crc >>> 1)) : (crc >>> 1);
+      }
+      return crc >>> 0;
+    });
+
+    function appendZipUint16(bytes, value) {
+      bytes.push(value & 0xff, (value >>> 8) & 0xff);
+    }
+
+    function appendZipUint32(bytes, value) {
+      bytes.push(value & 0xff, (value >>> 8) & 0xff, (value >>> 16) & 0xff, (value >>> 24) & 0xff);
+    }
+
+    function createZipBlob(files) {
+      const encoder = new TextEncoder();
+      const localEntries = [];
+      const centralEntries = [];
+      let localOffset = 0;
+
+      files.forEach(file => {
+        const name = encoder.encode(file.name);
+        const content = encoder.encode(file.content);
+        const crc = getCRC32(content);
+        const localHeader = [];
+        appendZipUint32(localHeader, 0x04034b50);
+        appendZipUint16(localHeader, 20);
+        appendZipUint16(localHeader, 0x0800);
+        appendZipUint16(localHeader, 0);
+        appendZipUint16(localHeader, 0);
+        appendZipUint16(localHeader, 0x0021);
+        appendZipUint32(localHeader, crc);
+        appendZipUint32(localHeader, content.length);
+        appendZipUint32(localHeader, content.length);
+        appendZipUint16(localHeader, name.length);
+        appendZipUint16(localHeader, 0);
+        const localEntry = new Blob([new Uint8Array(localHeader), name, content]);
+        localEntries.push(localEntry);
+
+        const centralHeader = [];
+        appendZipUint32(centralHeader, 0x02014b50);
+        appendZipUint16(centralHeader, 20);
+        appendZipUint16(centralHeader, 20);
+        appendZipUint16(centralHeader, 0x0800);
+        appendZipUint16(centralHeader, 0);
+        appendZipUint16(centralHeader, 0);
+        appendZipUint16(centralHeader, 0x0021);
+        appendZipUint32(centralHeader, crc);
+        appendZipUint32(centralHeader, content.length);
+        appendZipUint32(centralHeader, content.length);
+        appendZipUint16(centralHeader, name.length);
+        appendZipUint16(centralHeader, 0);
+        appendZipUint16(centralHeader, 0);
+        appendZipUint16(centralHeader, 0);
+        appendZipUint16(centralHeader, 0);
+        appendZipUint32(centralHeader, 0);
+        appendZipUint32(centralHeader, localOffset);
+        centralEntries.push(new Blob([new Uint8Array(centralHeader), name]));
+        localOffset += localEntry.size;
+      });
+
+      const centralDirectory = new Blob(centralEntries);
+      const endRecord = [];
+      appendZipUint32(endRecord, 0x06054b50);
+      appendZipUint16(endRecord, 0);
+      appendZipUint16(endRecord, 0);
+      appendZipUint16(endRecord, files.length);
+      appendZipUint16(endRecord, files.length);
+      appendZipUint32(endRecord, centralDirectory.size);
+      appendZipUint32(endRecord, localOffset);
+      appendZipUint16(endRecord, 0);
+      return new Blob([...localEntries, centralDirectory, new Uint8Array(endRecord)], { type: 'application/zip' });
+    }
+
+    function createPrintableHTML(month) {
+      buildPrintArea(month);
+      const [year, monthNumber] = month.split('-');
+      const report = document.getElementById('printArea').innerHTML;
+      return `<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHTML(appConfig.appName)} ${escapeHTML(year)}年${escapeHTML(String(parseInt(monthNumber)))}月 稼働月報</title>
+  <style>
+    @page { size: A4 portrait; margin: 10mm 18mm; }
+    body { margin: 0; font-family: "Noto Sans JP", "Yu Gothic", sans-serif; color: #111; }
+    #printArea { box-sizing: border-box; width: 174mm; margin: 0 auto; }
+    @media screen {
+      body { padding: 16px; background: #e2e8f0; }
+      #printArea { padding: 10mm; background: #fff; box-shadow: 0 2px 12px #64748b; }
+    }
+    @media print { #printArea { width: 100%; } }
+  </style>
+</head>
+<body>
+  <main id="printArea">${report}</main>
+</body>
+</html>`;
+    }
+
+    function exportMonthlyArchive(event) {
+      event.preventDefault();
+      const month = document.getElementById('monthlyExportSelect').value;
+      if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) {
+        alert('保存する内容月を選択してください。');
+        return;
+      }
+
+      const monthlyRecords = recordsData.filter(record => record.date?.startsWith(`${month}-`));
+      const exportedAt = new Date().toISOString();
+      const backup = {
+        format: 'beisia-work-records-backup',
+        version: 3,
+        period: month,
+        exportedAt,
+        project: {
+          name: appConfig.appName,
+          slotTimes: appConfig.slotTimes,
+          useTenkoApp: appConfig.useTenkoApp
+        },
+        records: monthlyRecords
+      };
+      const baseName = `${getSafeFileName(appConfig.appName)}_稼働記録_${month}`;
+      const files = [
+        { name: `${month}_稼働記録.json`, content: JSON.stringify(backup, null, 2) },
+        { name: `${month}_稼働記録.csv`, content: buildCSVContent(monthlyRecords) },
+        { name: `${month}_稼働月報.html`, content: createPrintableHTML(month) }
+      ];
+      const blob = createZipBlob(files);
+      const eraseAfterExport = document.getElementById('eraseAfterMonthlyExport').checked;
+      const downloadUrl = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = `${baseName}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+      document.getElementById('eraseAfterMonthlyExport').checked = false;
+      closeMonthlyExportModal();
+      if (eraseAfterExport) {
+        pendingMonthlyDeletionMonth = month;
+        document.getElementById('monthlyExportCompleteModal').classList.remove('hidden');
+      }
     }
 
     function exportJSON() {
