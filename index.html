@@ -2663,7 +2663,8 @@
     // CSV & JSON Export / Import / Reset
     function csvEscape(value) {
       const text = String(value ?? '');
-      return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+      const safeText = /^[\u0000-\u0020\uFEFF]*[=+\-@]/.test(text) ? `'${text}` : text;
+      return /[",\r\n]/.test(safeText) ? `"${safeText.replace(/"/g, '""')}"` : safeText;
     }
 
     function getSafeFileName(value) {
