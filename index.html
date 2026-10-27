@@ -214,7 +214,7 @@
           <p class="text-xs text-emerald-200">案件別 稼働記録・配送メーター管理</p>
         </div>
       </div>
-      <div class="flex items-center justify-end w-full sm:w-auto space-x-2 sm:space-x-3">
+      <div class="flex flex-wrap items-center justify-end w-full sm:w-auto gap-2 sm:gap-3">
         <a href="account.html" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition" title="自在稼働記録アカウント">
           <i class="fa-solid fa-user-group"></i>
         </a>
@@ -226,9 +226,9 @@
           <i class="fa-solid fa-download"></i>
           <span class="hidden sm:inline">バックアップ</span>
         </button>
-        <button onclick="openMonthlyExportModal()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center space-x-1 shadow-sm">
+        <button onclick="openMonthlyExportModal()" title="内容月のデータをZIP保存" aria-label="月別ZIP保存" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center space-x-1 shadow-sm">
           <i class="fa-solid fa-file-zipper"></i>
-          <span class="hidden sm:inline">月別ZIP保存</span>
+          <span>月別ZIP保存</span>
         </button>
         <button onclick="openPrintModal()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center space-x-1 shadow-sm">
           <i class="fa-solid fa-print"></i>
@@ -2944,7 +2944,7 @@
 
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js?v=10');
+        navigator.serviceWorker.register('service-worker.js?v=11');
       });
     }
   </script>
