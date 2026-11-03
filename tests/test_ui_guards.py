@@ -46,6 +46,24 @@ class UIGuardTests(unittest.TestCase):
         form_date = re.search(r'<input[^>]*id="formDate"[^>]*>', self.html).group(0)
         self.assertIn("text-sm", form_date)
 
+    def test_pin_inputs_show_numeric_keypad(self):
+        """PIN入力欄(type=password)はiOSで数字パッドを出すため pattern=[0-9]* と inputmode=numeric を持つ。"""
+        for input_id in ("pinInput", "settingsPinInput", "newPinInput"):
+            with self.subTest(input_id=input_id):
+                tag_match = re.search(
+                    r'<input[^>]*id="%s"[^>]*>' % input_id, self.html
+                )
+                self.assertIsNotNone(tag_match, f"{input_id} が見つからない")
+                tag = tag_match.group(0)
+                self.assertIn('inputmode="numeric"', tag)
+                self.assertIn('pattern="[0-9]*"', tag)
+
+    def test_number_inputs_show_numeric_keypad(self):
+        """件数・km等の number 入力はすべて inputmode=numeric を持つ。"""
+        for tag in re.findall(r'<input[^>]*type="number"[^>]*>', self.html):
+            with self.subTest(tag=tag[:80]):
+                self.assertIn('inputmode="numeric"', tag)
+
     def test_print_table_borders_preserved(self):
         """帳票(印刷)側の罫線は意図的なものとして維持されている。"""
         self.assertIn(
