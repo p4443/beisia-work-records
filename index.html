@@ -187,28 +187,6 @@
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
-  <!-- PIN Lock Overlay -->
-  <div id="authOverlay" class="fixed inset-0 bg-slate-900 z-50 flex items-center justify-center p-4 sm:p-6 hidden">
-    <div class="bg-white rounded-xl sm:rounded-2xl shadow-2xl p-5 sm:p-8 max-w-sm w-full text-center space-y-5 sm:space-y-6">
-      <div class="bg-emerald-100 text-emerald-800 w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto text-xl sm:text-2xl shadow-inner">
-        <i class="fa-solid fa-lock"></i>
-      </div>
-      <div>
-        <h2 id="appNameAuth" class="text-lg sm:text-xl font-bold text-slate-800">自在稼働記録</h2>
-        <p id="authMessage" class="text-xs leading-5 text-slate-500 mt-1">セキュリティのためPINコードを入力してください</p>
-      </div>
-      <form onsubmit="verifyPIN(event)" class="space-y-4">
-        <div>
-          <input type="password" id="pinInput" placeholder="PINコードを入力" pattern="[0-9]*" inputmode="numeric" autocomplete="new-password" required class="w-full text-center tracking-widest text-base sm:text-lg font-bold py-3 px-4 border border-slate-300 rounded-lg sm:rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none">
-          <p id="pinError" class="text-xs text-red-500 mt-2 font-medium hidden">PINコードが正しくありません</p>
-        </div>
-        <button id="authSubmit" type="submit" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 rounded-lg sm:rounded-xl transition shadow-lg">
-          ロック解除
-        </button>
-      </form>
-    </div>
-  </div>
-
   <!-- Header -->
   <header class="bg-emerald-800 text-white shadow-md sticky top-0 z-30">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-0 min-h-16 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
@@ -256,9 +234,6 @@
         </label>
         <button onclick="openSettings()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition" title="設定">
           <i class="fa-solid fa-gear"></i>
-        </button>
-        <button id="pinLockButton" onclick="logout()" class="bg-slate-700 hover:bg-slate-600 text-white px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition hidden" title="画面をロック">
-          <i class="fa-solid fa-lock"></i>
         </button>
       </div>
     </div>
@@ -659,30 +634,6 @@
     </div>
   </div>
 
-  <!-- Modal for Settings Authentication -->
-  <div id="settingsAuthModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full">
-      <div class="px-6 py-4 bg-slate-800 text-white rounded-t-2xl flex items-center justify-between">
-        <h3 class="font-bold text-lg">設定を開く</h3>
-        <button type="button" onclick="closeSettingsAuthModal()" class="text-white/80 hover:text-white p-1" title="閉じる">
-          <i class="fa-solid fa-xmark text-xl"></i>
-        </button>
-      </div>
-      <form onsubmit="verifySettingsAccess(event)" class="p-6 space-y-4">
-        <p class="text-sm text-slate-600">現在のPINコードを入力してください。</p>
-        <div>
-          <label for="settingsPinInput" class="sr-only">現在のPINコード</label>
-          <input type="password" id="settingsPinInput" inputmode="numeric" pattern="[0-9]*" autocomplete="current-password" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-center tracking-widest text-lg focus:ring-2 focus:ring-emerald-500" placeholder="PINコード">
-          <p id="settingsPinError" class="text-xs text-red-600 mt-2 hidden">PINコードが正しくありません。</p>
-        </div>
-        <div class="flex justify-end gap-2">
-          <button type="button" onclick="closeSettingsAuthModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 hover:bg-slate-100">キャンセル</button>
-          <button type="submit" class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-sm font-medium">確認する</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
   <!-- Modal for Application Settings -->
   <div id="settingsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
     <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto custom-scrollbar">
@@ -728,18 +679,8 @@
             <span class="block text-xs text-slate-500 mt-0.5">使用しない場合はヘッダーの点呼確認簿ボタンを非表示にします。</span>
           </span>
         </label>
-        <label class="flex items-start gap-3 p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50">
-          <input type="checkbox" id="settingsPinLockEnabled" onchange="handlePINLockSettingChange()" class="mt-0.5 w-4 h-4 accent-emerald-700">
-          <span>
-            <span class="block text-sm font-medium text-slate-700">起動時にPINロックを使用する</span>
-            <span class="block text-xs text-slate-500 mt-0.5">共有端末など、ローカルの稼働記録を4桁以上のPINで保護したい場合だけ有効にします。</span>
-          </span>
-        </label>
         <div class="flex flex-wrap justify-between gap-2 pt-2 border-t border-slate-200">
-          <div class="flex gap-2">
-            <button id="changePINButton" type="button" onclick="changePIN()" class="px-3 py-2 border border-slate-300 rounded-lg text-xs text-slate-700 hover:bg-slate-100">PINを設定</button>
-            <button type="button" onclick="openResetDataModal()" class="px-3 py-2 border border-red-200 rounded-lg text-xs text-red-700 hover:bg-red-50">データ初期化</button>
-          </div>
+          <button type="button" onclick="openResetDataModal()" class="px-3 py-2 border border-red-200 rounded-lg text-xs text-red-700 hover:bg-red-50">データ初期化</button>
           <div class="flex gap-2">
             <button type="button" onclick="closeSettingsModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700 hover:bg-slate-100">キャンセル</button>
             <button type="submit" class="px-5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-sm font-medium">保存する</button>
@@ -765,19 +706,6 @@
           <button type="button" onclick="closeProjectModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700">キャンセル</button>
           <button type="submit" class="px-5 py-2 bg-emerald-700 text-white rounded-lg text-sm font-medium">追加する</button>
         </div>
-      </form>
-    </div>
-  </div>
-
-  <div id="pinChangeModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4 hidden">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full">
-      <div class="px-6 py-4 bg-slate-800 text-white rounded-t-2xl flex items-center justify-between">
-        <h3 id="pinChangeTitle" class="font-bold text-lg">PINコード設定</h3>
-        <button type="button" onclick="closePinChangeModal()" class="text-white/80 hover:text-white p-1" title="閉じる"><i class="fa-solid fa-xmark text-xl"></i></button>
-      </div>
-      <form onsubmit="saveNewPIN(event)" class="p-6 space-y-4">
-        <div><label for="newPinInput" class="block text-xs font-bold text-slate-700 mb-1">新しいPINコード</label><input type="password" id="newPinInput" inputmode="numeric" pattern="[0-9]*" minlength="4" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-center tracking-widest text-lg focus:ring-2 focus:ring-emerald-500"></div>
-        <div class="flex justify-end gap-2"><button type="button" onclick="closePinChangeModal()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm text-slate-700">キャンセル</button><button type="submit" class="px-5 py-2 bg-emerald-700 text-white rounded-lg text-sm font-medium">保存する</button></div>
       </form>
     </div>
   </div>
@@ -811,14 +739,12 @@
       return `${h}:${m}`;
     }
 
-    const APP_CONFIG_KEY = 'beisia_app_config_v1';
     const PROJECTS_KEY = 'beisia_projects_v1';
     const ACTIVE_PROJECT_KEY = 'beisia_active_project_v1';
-    const LEGACY_STORAGE_KEY = 'beisia_work_records_v2';
     const PROJECT_LIMIT = 10;
     const PRODUCT_NAME = '自在稼働記録';
     const DEFAULT_APP_CONFIG = {
-      appName: 'ベイシア・ネットスーパー',
+      appName: '新しい案件',
       slotTimes: ['10', '12', '14', '16', '18'],
       useTenkoApp: true
     };
@@ -866,20 +792,11 @@
       }
 
       if (projectsData.length === 0) {
-        let legacyConfig = DEFAULT_APP_CONFIG;
-        try {
-          legacyConfig = JSON.parse(readStorage(localStorage, APP_CONFIG_KEY) || 'null') || DEFAULT_APP_CONFIG;
-        } catch (error) {
-        }
-        const hasLegacyRecords = Boolean(readStorage(localStorage, LEGACY_STORAGE_KEY));
         projectsData = [{
           id: 'default-project',
-          ...normalizeProjectConfig(legacyConfig),
-          isPlaceholder: !hasLegacyRecords && !readStorage(localStorage, APP_CONFIG_KEY)
+          ...normalizeProjectConfig(DEFAULT_APP_CONFIG),
+          isPlaceholder: true
         }];
-        if (hasLegacyRecords) {
-          writeStorage(localStorage, getProjectStorageKey('default-project'), readStorage(localStorage, LEGACY_STORAGE_KEY));
-        }
       }
 
       const savedActiveId = readStorage(localStorage, ACTIVE_PROJECT_KEY);
@@ -935,7 +852,6 @@
 
     function renderAppIdentity() {
       document.getElementById('appDocumentTitle').textContent = PRODUCT_NAME;
-      document.getElementById('appNameAuth').textContent = PRODUCT_NAME;
       document.getElementById('appNameHeader').textContent = PRODUCT_NAME;
       document.getElementById('tenkoAppLink').classList.toggle('hidden', !appConfig.useTenkoApp);
       renderProjectSwitcher();
@@ -974,36 +890,6 @@
       document.getElementById('timeSlotBreakdown').className = `grid grid-cols-2 sm:grid-cols-${Math.min(slots.length, 5)} gap-3`;
     }
 
-    // 2026年9月スタート用の空データ枠を生成
-    function createInitialSeptemberData() {
-      const dows = ['日', '月', '火', '水', '木', '金', '土'];
-      const septemberRecords = [];
-      for (let day = 1; day <= 30; day++) {
-        const dd = day < 10 ? `0${day}` : `${day}`;
-        const dateStr = `2026-09-${dd}`;
-        const dateObj = new Date(dateStr);
-        const dow = dows[dateObj.getDay()];
-
-        septemberRecords.push({
-          id: day,
-          date: dateStr,
-          dow: dow,
-          driverName: '',
-          vehicleNo: '',
-          note: '',
-          startTime: '',
-          dep10Time: '',
-          endTime: '',
-          totalOrders: '0',
-          totalKm: '0',
-          ...Object.fromEntries(getSlotDefinitions().map(slot => [slot.key, createEmptySlot()]))
-        });
-      }
-      return septemberRecords;
-    }
-
-    const PIN_KEY = 'beisia_pin_code_v1';
-    const PIN_ENABLED_KEY = 'beisia_pin_enabled_v1';
     const RECORDS_CHANNEL = 'beisia_work_records_sync_v1';
     const TENKO_APP_URL = 'https://tennko-kakuninnbo.onrender.com/';
     const TENKO_API_BASE_URL = TENKO_APP_URL;
@@ -1011,7 +897,6 @@
     const TENKO_DELETE_QUEUE_KEY = 'beisia_tenko_delete_queue_v1';
     const TENKO_PROJECT_DELETE_QUEUE_KEY = 'beisia_tenko_project_delete_queue_v1';
     const TENKO_CONFLICTS_KEY = 'beisia_tenko_sync_conflicts_v1';
-    const PIN_ITERATIONS = 150000;
     let recordsData = [];
     let pendingMonthlyDeletionMonth = '';
     let tenkoSyncTimer = null;
@@ -1415,7 +1300,6 @@
       message.textContent = '接続を解除しました。稼働記録データは削除されません。';
     }
 
-    // PIN Authentication Logic
     function readStorage(storage, key) {
       try {
         return storage.getItem(key);
@@ -1440,175 +1324,7 @@
       }
     }
 
-    function getStoredPINRecord() {
-      const storedPIN = readStorage(localStorage, PIN_KEY);
-      if (!storedPIN) return null;
-      if (storedPIN.startsWith('v2$')) {
-        const [, iterations, salt, hash] = storedPIN.split('$');
-        if (iterations && salt && hash) return { iterations: Number(iterations), salt, hash };
-        return null;
-      }
-      return { plain: storedPIN.trim() };
-    }
-
-    function encodeBytes(bytes) {
-      let binary = '';
-      bytes.forEach(byte => { binary += String.fromCharCode(byte); });
-      return btoa(binary);
-    }
-
-    function decodeBytes(value) {
-      return Uint8Array.from(atob(value), character => character.charCodeAt(0));
-    }
-
-    async function hashPIN(pin, salt = crypto.getRandomValues(new Uint8Array(16))) {
-      const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveBits']);
-      const bits = await crypto.subtle.deriveBits(
-        { name: 'PBKDF2', salt, iterations: PIN_ITERATIONS, hash: 'SHA-256' },
-        key,
-        256
-      );
-      return `v2$${PIN_ITERATIONS}$${encodeBytes(salt)}$${encodeBytes(new Uint8Array(bits))}`;
-    }
-
-    async function verifyStoredPIN(pin, storedRecord) {
-      if (!storedRecord) return false;
-      if (storedRecord.plain) return pin === storedRecord.plain;
-      const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveBits']);
-      const bits = await crypto.subtle.deriveBits(
-        { name: 'PBKDF2', salt: decodeBytes(storedRecord.salt), iterations: storedRecord.iterations, hash: 'SHA-256' },
-        key,
-        256
-      );
-      return encodeBytes(new Uint8Array(bits)) === storedRecord.hash;
-    }
-
-    function checkAuth() {
-      const isAuthed = readStorage(sessionStorage, 'beisia_authed') === 'true';
-      const hasPIN = isPINLockEnabled();
-      const authOverlay = document.getElementById('authOverlay');
-      document.getElementById('pinLockButton').classList.toggle('hidden', !hasPIN);
-      if (!hasPIN || isAuthed) {
-        authOverlay.classList.add('hidden');
-      } else {
-        authOverlay.classList.remove('hidden');
-        document.getElementById('pinInput').value = '';
-        document.getElementById('pinError').classList.add('hidden');
-        document.getElementById('authMessage').textContent = 'セキュリティのためPINコードを入力してください';
-        document.getElementById('pinInput').placeholder = 'PINコードを入力';
-        document.getElementById('authSubmit').textContent = 'ロック解除';
-      }
-    }
-
-    function isPINLockEnabled() {
-      return readStorage(localStorage, PIN_ENABLED_KEY) === 'true' && Boolean(getStoredPINRecord());
-    }
-
-    async function verifyPIN(event) {
-      event.preventDefault();
-      const input = document.getElementById('pinInput').value.trim();
-      const storedPIN = getStoredPINRecord();
-      const submitButton = document.getElementById('authSubmit');
-      submitButton.disabled = true;
-      try {
-        if (!storedPIN) {
-          if (!/^\d{4,}$/.test(input)) {
-            document.getElementById('pinError').textContent = 'PINコードは4桁以上の数字で設定してください';
-            document.getElementById('pinError').classList.remove('hidden');
-            return;
-          }
-          const hashedPIN = await hashPIN(input);
-          if (!writeStorage(localStorage, PIN_KEY, hashedPIN) || !writeStorage(sessionStorage, 'beisia_authed', 'true')) {
-            document.getElementById('pinError').textContent = 'PINコードを保存できません。ブラウザのストレージ設定を確認してください';
-            document.getElementById('pinError').classList.remove('hidden');
-            return;
-          }
-          document.getElementById('authOverlay').classList.add('hidden');
-          document.getElementById('pinError').classList.add('hidden');
-          return;
-        }
-        if (await verifyStoredPIN(input, storedPIN)) {
-          if (storedPIN.plain) writeStorage(localStorage, PIN_KEY, await hashPIN(input));
-          if (!writeStorage(sessionStorage, 'beisia_authed', 'true')) {
-            document.getElementById('pinError').textContent = 'ロック解除状態を保存できません。ブラウザのストレージ設定を確認してください';
-            document.getElementById('pinError').classList.remove('hidden');
-            return;
-          }
-          document.getElementById('authOverlay').classList.add('hidden');
-          document.getElementById('pinError').classList.add('hidden');
-        } else {
-          document.getElementById('pinError').classList.remove('hidden');
-          document.getElementById('pinInput').value = '';
-          document.getElementById('pinInput').focus();
-        }
-      } catch (error) {
-        document.getElementById('pinError').textContent = '認証処理に失敗しました。ブラウザの安全な接続とストレージ設定を確認してください';
-        document.getElementById('pinError').classList.remove('hidden');
-      } finally {
-        submitButton.disabled = false;
-      }
-    }
-
-    function logout() {
-      if (isPINLockEnabled() && confirm('画面をロックしますか？')) {
-        removeStorage(sessionStorage, 'beisia_authed');
-        checkAuth();
-      }
-    }
-
-    function changePIN() {
-      document.getElementById('pinChangeTitle').textContent = getStoredPINRecord() ? 'PINコード変更' : 'PINコード設定';
-      document.getElementById('newPinInput').value = '';
-      document.getElementById('pinChangeModal').classList.remove('hidden');
-      document.getElementById('newPinInput').focus();
-    }
-
-    function closePinChangeModal() {
-      document.getElementById('pinChangeModal').classList.add('hidden');
-    }
-
-    async function saveNewPIN(event) {
-      event.preventDefault();
-      const newPin = document.getElementById('newPinInput').value.trim();
-      if (!/^\d{4,}$/.test(newPin)) return;
-      const isChangingPIN = Boolean(getStoredPINRecord());
-      if (!writeStorage(localStorage, PIN_KEY, await hashPIN(newPin))) {
-        alert('PINコードを保存できません。ブラウザのストレージ設定を確認してください。');
-        return;
-      }
-      document.getElementById('settingsPinLockEnabled').checked = true;
-      updatePINSettingsUI();
-      closePinChangeModal();
-      alert(isChangingPIN
-        ? 'PINコードを変更しました。'
-        : 'PINコードを保存しました。設定画面の「保存する」でPINロックを有効にできます。');
-    }
-
     function openSettings() {
-      if (!isPINLockEnabled()) {
-        showSettingsModal();
-        return;
-      }
-      document.getElementById('settingsPinInput').value = '';
-      document.getElementById('settingsPinError').classList.add('hidden');
-      document.getElementById('settingsAuthModal').classList.remove('hidden');
-      document.getElementById('settingsPinInput').focus();
-    }
-
-    function closeSettingsAuthModal() {
-      document.getElementById('settingsAuthModal').classList.add('hidden');
-    }
-
-    async function verifySettingsAccess(event) {
-      event.preventDefault();
-      const enteredPin = document.getElementById('settingsPinInput').value.trim();
-      const storedPIN = getStoredPINRecord();
-      if (!(await verifyStoredPIN(enteredPin, storedPIN))) {
-        document.getElementById('settingsPinError').classList.remove('hidden');
-        document.getElementById('settingsPinInput').select();
-        return;
-      }
-      closeSettingsAuthModal();
       showSettingsModal();
     }
 
@@ -1617,19 +1333,7 @@
       renderSettingsSlotTimes(appConfig.slotTimes);
       document.getElementById('settingsNewSlotTime').value = '';
       document.getElementById('settingsUseTenkoApp').checked = appConfig.useTenkoApp;
-      document.getElementById('settingsPinLockEnabled').checked = isPINLockEnabled();
-      updatePINSettingsUI();
       document.getElementById('settingsModal').classList.remove('hidden');
-    }
-
-    function updatePINSettingsUI() {
-      document.getElementById('changePINButton').textContent = getStoredPINRecord() ? 'PIN変更' : 'PINを設定';
-    }
-
-    function handlePINLockSettingChange() {
-      if (document.getElementById('settingsPinLockEnabled').checked && !getStoredPINRecord()) {
-        changePIN();
-      }
     }
 
     function getSettingsSlotTimes() {
@@ -1774,22 +1478,6 @@
         return;
       }
 
-      const pinLockEnabled = document.getElementById('settingsPinLockEnabled').checked;
-      if (pinLockEnabled && !getStoredPINRecord()) {
-        alert('PINロックを有効にするには、先にPINを設定してください。');
-        changePIN();
-        return;
-      }
-      if (!writeStorage(localStorage, PIN_ENABLED_KEY, String(pinLockEnabled))) {
-        alert('PINロック設定を保存できません。ブラウザのストレージ設定を確認してください。');
-        return;
-      }
-      if (pinLockEnabled) {
-        writeStorage(sessionStorage, 'beisia_authed', 'true');
-      } else {
-        removeStorage(sessionStorage, 'beisia_authed');
-      }
-
       appConfig = {
         appName: normalizedName,
         slotTimes,
@@ -1807,7 +1495,6 @@
       });
       saveToStorage();
       renderApp();
-      checkAuth();
       closeSettingsModal();
     }
 
@@ -1824,19 +1511,17 @@
     function executeResetData() {
       if (document.getElementById('resetConfirmInput').value.trim() !== 'RESET') return;
       recordsData.forEach(queueRecordDeletion);
-      recordsData = createInitialSeptemberData();
-      recordsData.forEach(markRecordDirty);
+      recordsData = [];
       saveToStorage();
       populateMonthOptions();
       renderApp();
       closeResetDataModal();
       closeSettingsModal();
-      alert('初期データに復元されました。');
+      alert('選択中の案件の記録を削除しました。');
     }
 
     // Initialize application
     function initializeApplication() {
-      checkAuth();
       loadAppConfig();
       renderAppIdentity();
       renderSlotConfiguration();
@@ -1914,43 +1599,19 @@
       renderTable(filteredRecords);
     }
 
-    // Load data from the active project's storage or create its initial month
+    // Load data from the active project's storage.
     function loadData() {
       const saved = readStorage(localStorage, getProjectStorageKey());
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
-          recordsData = Array.isArray(parsed) ? parsed : createInitialSeptemberData();
+          recordsData = Array.isArray(parsed) ? parsed : [];
         } catch (e) {
-          recordsData = createInitialSeptemberData();
+          recordsData = [];
         }
       } else {
-        recordsData = createInitialSeptemberData();
+        recordsData = [];
         saveToStorage(false);
-      }
-      dedupeRecordsByDate();
-    }
-
-    // 同じ日付の記録が複数存在する場合、データが多い方を残して統合する（過去の不具合データの救済）
-    function dedupeRecordsByDate() {
-      const map = new Map();
-      let hasDuplicate = false;
-      const score = rec => (parseInt(rec.totalOrders) || 0) + (parseInt(rec.totalKm) || 0);
-
-      recordsData.forEach(r => {
-        if (!r.date) return;
-        const existing = map.get(r.date);
-        if (!existing) {
-          map.set(r.date, r);
-          return;
-        }
-        hasDuplicate = true;
-        map.set(r.date, score(r) >= score(existing) ? r : existing);
-      });
-
-      if (hasDuplicate) {
-        recordsData = Array.from(map.values()).sort((a, b) => a.date.localeCompare(b.date));
-        saveToStorage();
       }
     }
 
@@ -2892,8 +2553,11 @@
       reader.onload = function(e) {
         try {
           const imported = JSON.parse(e.target.result);
-          const importedRecords = Array.isArray(imported) ? imported : imported?.records;
-          const isValid = Array.isArray(importedRecords) && importedRecords.every(record => record && typeof record === 'object' && typeof record.date === 'string');
+          const importedRecords = imported?.records;
+          const isValid = imported?.format === 'beisia-work-records-backup'
+            && imported?.version === 3
+            && Array.isArray(importedRecords)
+            && importedRecords.every(record => record && typeof record === 'object' && typeof record.date === 'string');
           if (isValid) {
             if (confirm(`ファイルから ${importedRecords.length} 件のデータをインポートしますか？現在のデータは上書きされます。`)) {
               if (imported?.project) {
@@ -2924,7 +2588,7 @@
               alert('インポートが完了しました。');
             }
           } else {
-            alert('有効な稼働記録JSON形式ではありません。');
+            alert('現在の自在稼働記録で作成したバックアップJSONではありません。');
           }
         } catch (err) {
           alert('ファイルの読み込み中にエラーが発生しました。');
@@ -2934,24 +2598,9 @@
       event.target.value = '';
     }
 
-    function resetDataConfirmation() {
-      const confirmation = prompt('全データを初期状態に戻します。続行するには RESET と入力してください:');
-      if (confirmation === 'RESET') {
-        recordsData.forEach(queueRecordDeletion);
-        recordsData = createInitialSeptemberData();
-        recordsData.forEach(markRecordDirty);
-        saveToStorage();
-        populateMonthOptions();
-        renderApp();
-        alert('初期データに復元されました。');
-      } else if (confirmation !== null) {
-        alert('入力が一致しないため、初期化は実行されませんでした。');
-      }
-    }
-
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js?v=11');
+        navigator.serviceWorker.register('service-worker.js?v=12');
       });
     }
   </script>

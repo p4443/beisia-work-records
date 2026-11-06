@@ -46,17 +46,28 @@ class UIGuardTests(unittest.TestCase):
         form_date = re.search(r'<input[^>]*id="formDate"[^>]*>', self.html).group(0)
         self.assertIn("text-sm", form_date)
 
-    def test_pin_inputs_show_numeric_keypad(self):
-        """PIN入力欄(type=password)はiOSで数字パッドを出すため pattern=[0-9]* と inputmode=numeric を持つ。"""
-        for input_id in ("pinInput", "settingsPinInput", "newPinInput"):
-            with self.subTest(input_id=input_id):
-                tag_match = re.search(
-                    r'<input[^>]*id="%s"[^>]*>' % input_id, self.html
-                )
-                self.assertIsNotNone(tag_match, f"{input_id} が見つからない")
-                tag = tag_match.group(0)
-                self.assertIn('inputmode="numeric"', tag)
-                self.assertIn('pattern="[0-9]*"', tag)
+    def test_removed_pin_and_legacy_storage_are_not_restored(self):
+        """廃止したPIN機能と旧単一案件ストレージの互換処理を再導入しない。"""
+        for removed_text in (
+            "PINコード",
+            "beisia_pin_code_v1",
+            "beisia_pin_enabled_v1",
+            "beisia_work_records_v2",
+            "createInitialSeptemberData",
+        ):
+            with self.subTest(removed_text=removed_text):
+                self.assertNotIn(removed_text, self.html)
+
+    def test_new_projects_start_without_fixed_month_records(self):
+        """新規案件は固定年月のデータを自動生成せず、空の記録一覧から開始する。"""
+        self.assertIn("appName: '新しい案件'", self.html)
+        self.assertIn("recordsData = [];", self.html)
+        self.assertNotIn("2026-09-", self.html)
+
+    def test_restore_accepts_only_current_backup_format(self):
+        """復元は現行のバックアップ識別子とバージョンを検証する。"""
+        self.assertIn("imported?.format === 'beisia-work-records-backup'", self.html)
+        self.assertIn("imported?.version === 3", self.html)
 
     def test_number_inputs_show_numeric_keypad(self):
         """件数・km等の number 入力はすべて inputmode=numeric を持つ。"""
