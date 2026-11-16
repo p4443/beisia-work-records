@@ -115,18 +115,27 @@ class VercelRedirectTests(unittest.TestCase):
 
     def test_old_host_redirects_to_new_host_preserving_paths(self):
         config = json.loads(VERCEL_CONFIG.read_text(encoding="utf-8"))
-        self.assertEqual(len(config["redirects"]), 1)
-        redirect = config["redirects"][0]
-        self.assertEqual(redirect["source"], "/:path*")
-        self.assertIn(
-            {"type": "host", "value": "beisia-work-records.vercel.app"},
-            redirect["has"],
-        )
+        self.assertEqual(len(config["redirects"]), 2)
+        root_redirect, path_redirect = config["redirects"]
+        self.assertEqual(root_redirect["source"], "/")
         self.assertEqual(
-            redirect["destination"],
+            root_redirect["destination"], "https://jizai-kado-kirokubo.vercel.app/"
+        )
+        for redirect in (root_redirect, path_redirect):
+            with self.subTest(source=redirect["source"]):
+                self.assertIn(
+                    {
+                        "type": "host",
+                        "value": "beisia-work-records.vercel.app",
+                    },
+                    redirect["has"],
+                )
+                self.assertTrue(redirect["permanent"])
+        self.assertEqual(path_redirect["source"], "/:path*")
+        self.assertEqual(
+            path_redirect["destination"],
             "https://jizai-kado-kirokubo.vercel.app/:path*",
         )
-        self.assertTrue(redirect["permanent"])
 
 
 if __name__ == "__main__":
