@@ -27,13 +27,29 @@ function clearCachedAccess() {
   }
 }
 
-const hasCachedAccess = readCachedAccess();
-if (hasCachedAccess) document.documentElement.hidden = false;
+const TRIAL_BANNER_ID = 'trialModeBanner';
+
+function showTrialBanner(message = '試用モードで利用中です。稼働記録の機能を購入前にお試しいただけます。') {
+  const banner = document.getElementById(TRIAL_BANNER_ID) || document.createElement('div');
+  banner.id = TRIAL_BANNER_ID;
+  banner.setAttribute('role', 'status');
+  banner.style.cssText = 'background:#fef9c3;color:#713f12;border-bottom:1px solid #fde047;padding:8px 12px;font-size:13px;line-height:1.6;text-align:center;';
+  banner.textContent = message;
+  banner.innerHTML += ' 記録はこのブラウザー内に保存されます。点呼確認簿へ接続した場合は同期先にも送信されます。'
+  + '<a href="purchase.html" style="color:#166534;font-weight:700;margin-left:8px;white-space:nowrap;">購入はこちら</a>'
+  + '<a href="account.html" style="color:#166534;font-weight:700;margin-left:8px;white-space:nowrap;">購入済みの方はログイン</a>';
+  document.body.prepend(banner);
+}
+
+function removeTrialBanner() {
+  document.getElementById(TRIAL_BANNER_ID)?.remove();
+}
 
 async function verifyAccess() {
   if (!config.supabaseUrl || !config.supabaseAnonKey) {
+  console.warn('クラウド設定が不足しているため、購入状況を確認できません。');
   clearCachedAccess();
-  location.replace('account.html?reason=configuration');
+  showTrialBanner();
   return;
   }
 
@@ -43,9 +59,9 @@ async function verifyAccess() {
   const { data, error: sessionError } = await supabase.auth.getSession();
 
   if (sessionError) throw sessionError;
-  if (sessionError || !data.session) {
+  if (!data.session) {
     clearCachedAccess();
-    location.replace(`account.html?next=${encodeURIComponent('index.html')}`);
+    showTrialBanner();
     return;
   }
 
@@ -58,18 +74,17 @@ async function verifyAccess() {
   if (error) throw error;
   if (!licenses?.length) {
     clearCachedAccess();
-    location.replace('purchase.html?reason=license');
+    showTrialBanner();
     return;
   }
 
   cacheAccess();
-  document.documentElement.hidden = false;
+  removeTrialBanner();
   } catch (error) {
   console.error('クラウドのアクセス確認に失敗しました。', error);
-  if (!hasCachedAccess) {
-    location.replace('account.html?reason=connection');
-  }
+  showTrialBanner('購入状況を確認できませんでした。記録機能は引き続き利用できます。アカウントページで接続状況を確認してください。');
   }
 }
 
+if (!readCachedAccess()) showTrialBanner('購入状況を確認中です。確認中も記録機能を利用できます。');
 verifyAccess();

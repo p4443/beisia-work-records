@@ -1,6 +1,6 @@
 {
-  "name": "自在稼働記録",
-  "short_name": "自在稼働記録",
+  "name": "自在稼働記録簿",
+  "short_name": "自在稼働記録簿",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

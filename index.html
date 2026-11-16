@@ -1,13 +1,13 @@
 <!DOCTYPE html>
-<html lang="ja" hidden>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title id="appDocumentTitle">自在稼働記録</title>
+  <title id="appDocumentTitle">自在稼働記録簿</title>
   <meta name="theme-color" content="#166534">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="自在稼働記録">
+  <meta name="apple-mobile-web-app-title" content="自在稼働記録簿">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="preconnect" href="https://esm.sh" crossorigin>
   <link rel="preconnect" href="https://lsoaogvwbplindyhcjta.supabase.co" crossorigin>
@@ -195,12 +195,12 @@
           <i class="fa-solid font-bold fa-truck-fast"></i>
         </div>
         <div>
-          <h1 id="appNameHeader" class="font-bold text-lg leading-tight">自在稼働記録</h1>
+          <h1 id="appNameHeader" class="font-bold text-lg leading-tight">自在稼働記録簿</h1>
           <p class="text-xs text-emerald-200">案件別 稼働記録・配送メーター管理</p>
         </div>
       </div>
       <div class="flex flex-wrap items-center justify-end w-full sm:w-auto gap-2 sm:gap-3">
-        <a href="account.html" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition" title="自在稼働記録アカウント">
+        <a href="account.html" class="bg-emerald-700 hover:bg-emerald-600 text-white px-2.5 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition" title="自在稼働記録簿アカウント">
           <i class="fa-solid fa-user-group"></i>
         </a>
         <button onclick="exportCSV()" class="bg-emerald-700 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition flex items-center space-x-1 shadow-sm">
@@ -742,7 +742,7 @@
     const PROJECTS_KEY = 'beisia_projects_v1';
     const ACTIVE_PROJECT_KEY = 'beisia_active_project_v1';
     const PROJECT_LIMIT = 10;
-    const PRODUCT_NAME = '自在稼働記録';
+    const PRODUCT_NAME = '自在稼働記録簿';
     const DEFAULT_APP_CONFIG = {
       appName: '新しい案件',
       slotTimes: ['10', '12', '14', '16', '18'],
@@ -2588,7 +2588,7 @@
               alert('インポートが完了しました。');
             }
           } else {
-            alert('現在の自在稼働記録で作成したバックアップJSONではありません。');
+            alert('現在の自在稼働記録簿で作成したバックアップJSONではありません。');
           }
         } catch (err) {
           alert('ファイルの読み込み中にエラーが発生しました。');

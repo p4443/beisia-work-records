@@ -9,6 +9,7 @@ import unittest
 from pathlib import Path
 
 INDEX_HTML = Path(__file__).resolve().parent.parent / "index.html"
+ACCESS_CONTROL_JS = Path(__file__).resolve().parent.parent / "access-control.js"
 
 
 class UIGuardTests(unittest.TestCase):
@@ -80,6 +81,31 @@ class UIGuardTests(unittest.TestCase):
         self.assertIn(
             "#printArea th, #printArea td { border: 1px solid #333;", self.html
         )
+
+
+class TrialModeTests(unittest.TestCase):
+    """購入前ローカル試用モード(未購入でも全機能・端末内保存)の回帰テスト。"""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.html = INDEX_HTML.read_text(encoding="utf-8")
+        cls.js = ACCESS_CONTROL_JS.read_text(encoding="utf-8")
+
+    def test_app_name_is_kirokubo(self):
+        """アプリ名は「自在稼働記録簿」で統一されている。"""
+        self.assertIn("const PRODUCT_NAME = '自在稼働記録簿'", self.html)
+        self.assertNotIn("自在稼働記録<", self.html)
+
+    def test_app_renders_without_license_gate(self):
+        """index.html はライセンス確認を待たずに描画される(hidden属性なし)。"""
+        self.assertIn('<html lang="ja">', self.html)
+        self.assertNotIn("<html lang=\"ja\" hidden>", self.html)
+
+    def test_access_control_shows_banner_instead_of_redirect(self):
+        """未購入時は強制リダイレクトせず、試用モードバナーを表示する。"""
+        self.assertNotIn("location.replace", self.js)
+        self.assertIn("showTrialBanner", self.js)
+        self.assertIn("trialModeBanner", self.js)
 
 
 if __name__ == "__main__":
