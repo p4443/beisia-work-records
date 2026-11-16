@@ -5,11 +5,13 @@
     python3 -m unittest discover -s tests
 """
 import re
+import json
 import unittest
 from pathlib import Path
 
 INDEX_HTML = Path(__file__).resolve().parent.parent / "index.html"
 ACCESS_CONTROL_JS = Path(__file__).resolve().parent.parent / "access-control.js"
+VERCEL_CONFIG = Path(__file__).resolve().parent.parent / "vercel.json"
 
 
 class UIGuardTests(unittest.TestCase):
@@ -106,6 +108,25 @@ class TrialModeTests(unittest.TestCase):
         self.assertNotIn("location.replace", self.js)
         self.assertIn("showTrialBanner", self.js)
         self.assertIn("trialModeBanner", self.js)
+
+
+class VercelRedirectTests(unittest.TestCase):
+    """旧Vercelホストから新しい公開URLへの転送設定。"""
+
+    def test_old_host_redirects_to_new_host_preserving_paths(self):
+        config = json.loads(VERCEL_CONFIG.read_text(encoding="utf-8"))
+        self.assertEqual(len(config["redirects"]), 1)
+        redirect = config["redirects"][0]
+        self.assertEqual(redirect["source"], "/:path*")
+        self.assertIn(
+            {"type": "host", "value": "beisia-work-records.vercel.app"},
+            redirect["has"],
+        )
+        self.assertEqual(
+            redirect["destination"],
+            "https://jizai-kado-kirokubo.vercel.app/:path*",
+        )
+        self.assertTrue(redirect["permanent"])
 
 
 if __name__ == "__main__":

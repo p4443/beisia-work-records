@@ -9,9 +9,10 @@
 ## 公開URL変更時の確認
 
 - リポジトリ名の変更先は `jizai-kado-kirokubo` です。リポジトリ名変更だけでホスティング先のURLが変わるとは限りません。公開先を確認してから変更します。
-- 現在の公開先はVercelの `https://beisia-work-records.vercel.app` です。新しい `jizai-kado-kirokubo.vercel.app` の利用可否をVercelの対象プロジェクトで確認し、Domains設定と本番デプロイを確認します。リポジトリ名変更だけでは、このドメイン設定は変更されません。
+- 新しい公開先はVercelの `https://jizai-kado-kirokubo.vercel.app` です。Vercel設定で旧URL `https://beisia-work-records.vercel.app` の全パスを新URLの同じパスへ恒久転送します。転送ルールは `vercel.json` にあり、旧ホストだけに適用するため新ホストへの転送ループは起きません。GitHubリポジトリ名は `beisia-work-records` のままです。リポジトリ名変更だけでは、このドメイン設定は変更されません。
 - 旧URLで案件ごとのJSONバックアップを保存してください。ブラウザーストレージはURLのオリジン単位のため、別オリジンへは自動移行しません。新URLでは案件ごとにJSONを復元します。同一オリジンでもパス変更でPWAのスコープが変わるため、インストール済みアプリを確認します。
 - 新しい公開URLに合わせ、SupabaseのSite URL・Redirect URLs・`APP_URL`・`APP_ORIGIN`、Stripe Payment Linkの決済後の戻り先・商品名・公開法務リンク、ホスティングのリポジトリ参照を更新します。既存のPayment Link IDやWebhookは維持します。
+- 2026年11月16日にSupabaseのSite URL・`APP_URL`・`APP_ORIGIN`を新URLへ変更し、Redirect URLsに新URLの `/account.html` を追加しました。旧URLの `/account.html` も許可を維持しています。新URLの配信と会社招待FunctionのOPTIONS応答（204・新オリジン許可）は確認済みです。`vercel.json` の転送はProductionデプロイ後に反映されます。
 - 旧URLのデータを消去する前に、新URLで記録・印刷・出力・購入後ログイン・点呼連携が動作することを確認します。
 
 ## 1. Supabaseプロジェクト
